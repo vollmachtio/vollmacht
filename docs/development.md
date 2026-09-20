@@ -19,7 +19,9 @@ All packages inherit workspace metadata and lints. Publishing is disabled during
 
 ## Dependencies and CI
 
-There are no third-party Rust dependencies in this foundation. Commit Cargo.lock, review lockfile changes, and run locked builds in CI. Before adding a dependency, review its maintenance, RustSec advisories, license, default features, build scripts, native code, and transitive graph. Prefer minimal features and crates.io releases; git sources require a pinned revision and justification. Add automated advisory and license checks in the first PR introducing external dependencies, including experiments. Dependabot opens Cargo and Actions update PRs; it does not replace advisory scanning or review.
+The CLI remains dependency-free. The [WebAuthn probe](../spikes/webauthn/README.md) adds test-only dependencies, including native OpenSSL; its README records prerequisites and limitations. Commit Cargo.lock, review lockfile changes, and run locked builds in CI. Before adding a dependency, review its maintenance, RustSec advisories, license, default features, build scripts, native code, and transitive graph. Prefer minimal features and crates.io releases; git sources require a pinned revision and justification. Dependabot opens Cargo and Actions update PRs; it does not replace advisory scanning or review.
+
+Run `python3 scripts/dependencies.py install` once to install the pinned cargo-deny checker and check the locked dependency graph. Subsequently run `python3 scripts/dependencies.py`. These commands require network access to refresh advisory/index data. CI runs the same advisory, license, and source checks in its dependencies job. The normal check.py command covers compile/test/lint, not dependency advisories.
 
 Rust 1.98.1 was checked against its upstream release on 2026-09-20. Check [Rust releases](https://github.com/rust-lang/rust/releases) and [security announcements](https://rust-lang.org/policies/security/) when updating the pin. The [checkout action](https://github.com/actions/checkout/releases/tag/v7.0.1) is pinned to the upstream commit resolved on the same date. Neither pin is a guarantee against undiscovered vulnerabilities.
 

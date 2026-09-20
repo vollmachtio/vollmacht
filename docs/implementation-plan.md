@@ -19,6 +19,8 @@ Implementation proceeds through small PRs. Tasks are sequential unless explicitl
 
 P03 and P04 must remain experiments until findings are incorporated in P06. Do not publish production claims based on simulated authenticators. Pin dependency and toolchain versions only after checking current maintenance and advisory information.
 
+P03 is split for review: P03a adds an executable library compatibility probe and dependency checks; P03b adds the local browser ceremony and physical testing. P03a does not complete P03. Custom mandate-challenge support is a separate gate from successful random-challenge authentication. See [probe findings](../spikes/webauthn/README.md).
+
 ## Remaining milestones
 
 | Milestone | Atomic PR tasks | Acceptance gate |
