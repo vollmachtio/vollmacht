@@ -1,6 +1,6 @@
 # Security status
 
-Vollmacht is experimental and currently contains planning documents only. No production security guarantees are offered. Do not rely on v0 as the sole control for production-critical operations.
+Vollmacht is experimental. The current CLI only prints help and version information; authorization is not implemented. No production security guarantees are offered. Do not rely on v0 as the sole control for production-critical operations.
 
 ## Intended protection boundary
 

@@ -4,7 +4,7 @@ Verifiable human authority for AI agents.
 
 Vollmacht is German for authority granted to act on someone else's behalf. The project aims to let an agent perform an explicitly bounded operation after a person approves it using an existing passkey.
 
-Status: design and feasibility work. No usable implementation or release exists yet. Experimental v0 must not be the sole control for production-critical operations.
+Status: design and feasibility work, with a development CLI shell. Authorization is not implemented and no release exists yet. Experimental v0 must not be the sole control for production-critical operations.
 
 The first target is macOS: an agent proposes a GitHub pull request merge, a local approval page displays the exact operation, and a local enforcement service verifies and consumes a single-use Human Mandate before calling GitHub. Read-only operations can proceed under local policy without a prompt.
 
@@ -13,6 +13,7 @@ WebAuthn user verification may use Touch ID where available. Vollmacht receives 
 ## Project documents
 
 - [Execution plan](docs/implementation-plan.md)
+- [Build and development checks](docs/development.md)
 - [Architecture decisions and unresolved gates](docs/design-baseline.md)
 - [Contribution and adversarial review process](CONTRIBUTING.md)
 - [Security boundaries](SECURITY.md)
