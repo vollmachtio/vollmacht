@@ -1,0 +1,19 @@
+[package]
+name = "vollmacht-macos-key-probe"
+description = "Ephemeral Apple issuer-key experiment, not a mandate signer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+openssl = "=0.10.81"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework = { version = "=3.7.0", default-features = false }
+security-framework-sys = { version = "=2.17.0", default-features = false }
+
+[lints]
+workspace = true

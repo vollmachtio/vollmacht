@@ -13,6 +13,8 @@ The current binary only prints help and version information. Unsupported argumen
 
 ## Workspace conventions
 
+The separate [Apple key experiment](../spikes/macos-key/README.md) compiles on macOS and Linux. Its tests use software keys only. Hardware invocation is explicit and is never part of CI; default invocation prints help. It requests no permanent keys and does not alter the production CLI.
+
 Start with the CLI crate. Add core, WebAuthn, policy, storage, and GitHub crates when they acquire real implementations. Do not add placeholder authorization APIs. Experiments belong under spikes/ and must be explicitly added to or excluded from the workspace when created.
 
 All packages inherit workspace metadata and lints. Publishing is disabled during development. Unsafe Rust is forbidden in the current workspace. A future Apple FFI boundary requires an explicit design review of any change to that rule.
