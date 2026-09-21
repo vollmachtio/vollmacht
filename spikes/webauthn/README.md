@@ -1,6 +1,6 @@
 # WebAuthn compatibility and browser probe (P03a/P03b)
 
-This isolated experiment tests the library boundary and provides an opt-in localhost browser server. It does not mint a mandate or perform GitHub operations. No physical authenticator result is claimed until the manual matrix below is completed. The production CLI is unchanged.
+This isolated experiment tests the library boundary and provides an opt-in localhost browser server. It does not mint a mandate or perform GitHub operations. User-reported physical browser results and their limits are recorded below. The production CLI is unchanged.
 
 Run from the repository root:
 
@@ -31,7 +31,7 @@ Before approving the mandate design, evaluate a supported custom-challenge API i
 
 The browser spike independently tests platform authentication on localhost. It adds loopback-only binding, exact origin/Host validation, an ephemeral protected enrollment session, required UV, body limits, CSRF protection, expiration, and atomic state consumption. Automated tests cover registration failure, a correctly signed wrong RP ID, missing UP in otherwise valid none-attestation registration, and concurrent replay. A none-attestation success control distinguishes missing UP from a broken attestation signature.
 
-Physical Safari/Chrome registration, assertion, cancellation, expiration, and replay checks remain pending. The user completes the OS prompt. Record observed UV and Touch ID separately; report no universal proof of humanity or device identity. Passkeys may remain in the platform provider after the in-memory server stops; document manual removal of the specifically named test credential.
+Physical browser results are recorded below as user-reported observations, separately from automated verification. Touch ID observations are not universal proof of humanity or device identity. Passkeys may remain in the platform provider after the in-memory server stops; remove only the specifically named test credentials.
 
 ## Run the browser experiment
 
@@ -66,16 +66,21 @@ Use a fresh process per browser. Do not put tokens, assertion bytes or personal 
 
 | Check | Safari | Chrome |
 | :--- | :--- | :--- |
-| Exact browser/macOS version | Pending | Pending |
-| Registration accepted; provider and prompt type noted | Pending | Pending |
-| Authentication reports verified UV | Pending | Pending |
-| Whether Touch ID was actually used, versus device password or another method | Pending | Pending |
-| Cancel platform prompt; next ceremony succeeds | Pending | Pending |
-| Wait beyond 120 seconds; old response rejected; new ceremony succeeds | Pending | Pending |
-| Resubmit a completed request in local developer tools; receive 409 | Pending | Pending |
-| Stop/restart forgets enrollment; targeted provider cleanup completed | Pending | Pending |
+| Installed browser version read after testing | 26.6 | 153.0.8010.48 |
+| macOS version read after testing | 26.6 (25G72) | 26.6 (25G72) |
+| Registration accepted | Reported in fresh server session | Reported |
+| Verification accepted | Reported, including existing Chrome enrollment | Reported |
+| Touch ID observation | User confirmed during verification discussion | User observed verification prompting Touch ID |
+| Cancel platform prompt; next ceremony succeeds | Reported | Reported |
+| Browser timeout and fresh verification recovery | Reported | Reported; prompt closed automatically |
 
-Automated coverage includes 10 library compatibility tests, 8 lifecycle tests, 6 HTTP tests, and 4 browser-script tests, plus the existing CLI tests. The HTTP replay test runs two concurrent completions against the real router and requires exactly one success. Node tests execute the shipped script and check binary conversion, token isolation, cancellation cleanup and the submission-stage cancellation regression.
+Recorded on 2026-09-20 from the user's interactive tests of PR #5. These were not observed by an automated browser driver. Versions were read from installed application metadata afterward, not captured in the original ceremonies. The exact passkey provider and every individual registration prompt method were not independently recorded; no provider-specific or attestation claim is made.
+
+The user also reported successful manual replay rejection after following Chrome DevTools instructions: replaying a completed finish-authentication request returned `missing_or_expired_ceremony`. A separate Safari replay was not claimed. The shared server replay path is additionally covered by the concurrent HTTP test. The browser closing a timed-out prompt demonstrates browser timeout/recovery, not a manually submitted late assertion; exact server-side expiry rejection is covered by lifecycle tests.
+
+Fresh-session registration was reported after restart. Following instructions to stop the server and remove only test passkeys, the user confirmed cleanup was done; no inspection of their password provider was performed. Duplicate registration from Safari in an already-enrolled session correctly returned a conflict; the UI now explains that verification or a server restart is needed, rather than suggesting waiting.
+
+Automated coverage includes 10 library compatibility tests, 8 lifecycle tests, 6 HTTP tests, and 7 browser-script tests, plus the existing CLI tests. The HTTP replay test runs two concurrent completions against the real router and requires exactly one success. Node tests execute the shipped script and check binary conversion, token isolation, cancellation cleanup, the submission-stage cancellation regression, and allowlisted conflict messages without reflection of untrusted error bodies.
 
 ## Dependency assessment
 

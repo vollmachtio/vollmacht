@@ -13,7 +13,7 @@ const deferred = () => {
   return { promise, resolve };
 };
 
-function setup({ credentials, finish } = {}) {
+function setup({ credentials, finish, rejection } = {}) {
   const elements = Object.fromEntries(["token", "unlock", "register", "authenticate", "cancel", "status"].map((id) => [id, {
     value: "", disabled: false, textContent: "", addEventListener(_, fn) { this.click = fn; },
   }]));
@@ -35,6 +35,7 @@ function setup({ credentials, finish } = {}) {
     fetch: async (url, options) => {
       const body = JSON.parse(options.body);
       requests.push({ url, options, body });
+      if (rejection) return rejection;
       if (body.operation.startsWith("finish") && finish) await finish();
       return { ok: true, json: async () => ({ id: "ceremony", options: { publicKey: {
         challenge: encoded, user: { id: encoded },
@@ -105,4 +106,43 @@ test("platform rejection cancels pending state without submitting", async () => 
   assert.deepEqual(f.requests.map((r) => r.body.operation), ["register", "cancel"]);
   assert.ok(!f.elements.status.textContent.includes("Private device message"));
   assert.equal(f.elements.register.disabled, false);
+});
+
+test("known conflict codes give specific recovery instructions without invoking the authenticator", async () => {
+  for (const [code, expected] of [
+    ["already_registered", /already has a passkey.*Select Verify/],
+    ["not_registered", /Register a test passkey/],
+    ["ceremony_pending", /Another ceremony is pending/],
+    ["missing_or_expired_ceremony", /completed, cancelled, or expired/],
+  ]) {
+    const f = setup({ rejection: { ok: false, status: 409, json: async () => ({ error: code }) } });
+    await f.elements.register.click();
+    assert.match(f.elements.status.textContent, expected);
+    assert.equal(f.calls.length, 0);
+    assert.equal(f.requests.length, 1);
+    assert.equal(f.elements.register.disabled, false);
+    if (code === "already_registered") assert.ok(!f.elements.status.textContent.includes("wait 120"));
+  }
+});
+
+test("untrusted malformed and unknown rejection bodies are never reflected", async () => {
+  for (const payload of [null, {}, { error: "SECRET" }, { error: "__proto__" }, { error: { value: "SECRET" } }]) {
+    const f = setup({ rejection: { ok: false, status: 409, json: async () => payload } });
+    await f.elements.register.click();
+    assert.match(f.elements.status.textContent, /^Request rejected \(409\)/);
+    assert.ok(!f.elements.status.textContent.includes("SECRET"));
+  }
+});
+
+test("non-JSON and mismatched-status rejections use generic local messages", async () => {
+  for (const rejection of [
+    { ok: false, status: 403, json: async () => { throw new Error("SECRET response"); } },
+    { ok: false, status: 500, json: async () => ({ error: "already_registered" }) },
+  ]) {
+    const f = setup({ rejection });
+    await f.elements.register.click();
+    assert.match(f.elements.status.textContent, /^Request rejected/);
+    assert.ok(!f.elements.status.textContent.includes("SECRET"));
+    assert.ok(!f.elements.status.textContent.includes("already has a passkey"));
+  }
 });

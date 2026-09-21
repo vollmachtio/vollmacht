@@ -26,7 +26,19 @@ async function api(body) {
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
     body: JSON.stringify(body), signal: AbortSignal.timeout(7000),
   });
-  if (!response.ok) throw new Error(`Request rejected (${response.status}). Cancel or wait 120 seconds before retrying; check your token.`);
+  if (!response.ok) {
+    // Only local, allowlisted messages reach the UI. Never reflect response text.
+    const messages = new Map([
+      ["already_registered", "This server already has a passkey. Select Verify passkey, or restart the server to test a new registration."],
+      ["not_registered", "Register a test passkey in this server session before verifying."],
+      ["ceremony_pending", "Another ceremony is pending. Cancel its prompt or wait 120 seconds before starting again."],
+      ["missing_or_expired_ceremony", "This ceremony was completed, cancelled, or expired. Start a new verification."],
+    ]);
+    let code;
+    try { code = (await response.json())?.error; } catch { /* Empty or non-JSON rejection. */ }
+    const message = response.status === 409 && typeof code === "string" ? messages.get(code) : undefined;
+    throw new Error(message || `Request rejected (${response.status}). Check the server session and token; no success was confirmed.`);
+  }
   return response.json();
 }
 
