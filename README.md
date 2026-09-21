@@ -15,6 +15,7 @@ WebAuthn user verification may use Touch ID where available. Vollmacht receives 
 - [Execution plan](docs/implementation-plan.md)
 - [Build and development checks](docs/development.md)
 - [Architecture decisions and unresolved gates](docs/design-baseline.md)
+- [Standards and interoperability](docs/standards.md)
 - [Contribution and adversarial review process](CONTRIBUTING.md)
 - [Security boundaries](SECURITY.md)
 - [Logo assets and usage](assets/brand/README.md)

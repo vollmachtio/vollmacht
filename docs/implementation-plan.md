@@ -25,6 +25,15 @@ P04 is also split: P04a tests a temporary Secure Enclave key, independent signat
 
 ## Remaining milestones
 
+### Immediate execution queue after the browser and temporary-key experiments
+
+1. P05: publish the [standards baseline](standards.md) and [dated source register](standards-sources.md), with independent review of maturity and compatibility claims.
+2. P03c: isolate supported mandate-derived challenge generation and verification. Success requires a public library API, unchanged server-side validation, preserved raw client data, and tests rejecting changed payload, nonce, origin and credential. If unavailable, record the alternative and its trust tradeoff for review; do not patch serialized private state. Physical browser confirmation follows automated evidence.
+3. P04b: test durable protected key storage, restart retrieval and process access restrictions. Start with a written identity/entitlement matrix and software tests. Real Keychain creation, signing identity changes and interactive denial tests wait for the user; temporary-key success is not evidence for these properties.
+4. P06: resolve both gates in ADRs, then freeze schema and independent vectors. P07 parsing can start only after that review, not in parallel with an unsettled signing contract.
+
+P03c research and P04b test design can proceed independently. Neither requires changing GitHub organization settings. No live GitHub write demo is needed until P22/P23.
+
 | Milestone | Atomic PR tasks | Acceptance gate |
 | :--- | :--- | :--- |
 | M2 Core completion | P11 SQLite replay/revocation migrations; P12 reservation and crash recovery; P13 full verifier vectors and property tests | Concurrent execution yields one reservation; restart cannot reuse reserved mandate; revocation/status checks and reservation form one serialized decision; test both revoke-versus-reserve orderings; expired mandate fails |
