@@ -17,6 +17,7 @@ WebAuthn user verification may use Touch ID where available. Vollmacht receives 
 - [Architecture decisions and unresolved gates](docs/design-baseline.md)
 - [Contribution and adversarial review process](CONTRIBUTING.md)
 - [Security boundaries](SECURITY.md)
+- [Logo assets and usage](assets/brand/README.md)
 
 The planned implementation uses Rust for the CLI, verifier, policy evaluator, storage, and GitHub adapter; a small browser UI provides WebAuthn. A Swift key-storage helper is conditional on a macOS feasibility test. GitHub Pages documentation will follow once the demo works.
 
