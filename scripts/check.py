@@ -24,6 +24,7 @@ def main():
     # Keep options in one place so local and CI verification cannot drift.
     option = chr(45) * 2
     commands = [
+        ["node", "spikes/webauthn/tests/browser.cjs"],
         ["cargo", "fmt", option + "all", option, option + "check"],
         ["cargo", "clippy", option + "workspace", option + "all-targets", option + "locked", option, "-D", "warnings"],
         ["cargo", "test", option + "workspace", option + "locked"],

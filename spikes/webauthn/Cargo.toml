@@ -1,6 +1,6 @@
 [package]
 name = "vollmacht-webauthn-probe"
-description = "Test-only WebAuthn API compatibility probe; not an authorization implementation"
+description = "Experimental localhost WebAuthn probe; not an authorization implementation"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,9 +8,19 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
-[dev-dependencies]
+[dependencies]
+axum = { version = "=0.8.9", default-features = false, features = ["http1", "json", "tokio"] }
+tokio = { version = "=1.53.1", features = ["macros", "rt-multi-thread", "net", "signal", "time"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+getrandom = "=0.4.3"
+subtle = "=2.6.1"
 webauthn-rs-proto = "=0.5.5"
 webauthn-rs = { version = "=0.5.5", default-features = false }
+
+[dev-dependencies]
+serde_cbor_2 = "=0.13.0"
+tower = { version = "=0.5.3", features = ["util"] }
 webauthn-authenticator-rs = { version = "=0.5.5", default-features = false, features = ["softpasskey"] }
 
 [lints]
