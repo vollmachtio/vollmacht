@@ -83,7 +83,7 @@ WebAuthn dependencies are pinned to 0.5.5. The experimental server uses webauthn
 
 The browser server adds pinned Axum 0.8.9 (HTTP/JSON routing), Tokio 1.53.1 (runtime, loopback socket, shutdown and timeouts), serde/serde_json (transport parsing), getrandom (OS randomness), and subtle (constant-time bearer comparison). Tower and serde_cbor_2 are explicit test dependencies for router requests and none-attestation fixtures. Axum default features are disabled. Review the resolved lockfile and cargo-deny result rather than treating pins as a security guarantee. Sources checked on 2026-09-20: [Axum API](https://docs.rs/axum/0.8.9/axum/), [Tokio API](https://docs.rs/tokio/1.53.1/tokio/).
 
-These upstream crates use MPL-2.0. Keep their source and notices intact; this does not change Vollmacht's Apache-2.0 license. The allowlist in deny.toml covers dependency licenses, including MPL-2.0, rather than relicensing dependencies.
+The WebAuthn crates use MPL-2.0. Keep their source and notices intact; this does not change Vollmacht's Apache-2.0 license. The allowlist in deny.toml covers dependency licenses, including MPL-2.0, rather than relicensing dependencies.
 
 Axum's pinned matchit 0.8.4 dependency declares MIT AND BSD-3-Clause; subtle 2.6.1 declares BSD-3-Clause. Their upstream license files were inspected; version-scoped exceptions admit BSD-3-Clause for these two crates only. Preserve the relevant copyright, license and disclaimer notices in distribution. No advisory exception was added.
 
