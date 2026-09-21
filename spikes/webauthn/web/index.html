@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vollmacht | Local passkey probe</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body><main>
+  <p class="eyebrow">VOLLMACHT / EXPERIMENTAL</p>
+  <h1>Local passkey probe</h1>
+  <p>Test registration and user-verified authentication with your platform passkey provider. This does not approve an action, issue a Human Mandate, or contact GitHub.</p>
+  <section>
+    <label for="token">Session token from your terminal</label>
+    <input id="token" type="password" autocomplete="off" spellcheck="false" maxlength="64">
+    <button id="unlock">Use token</button>
+    <p>The token stays in this page's memory. Reloading forgets it.</p>
+  </section>
+  <section>
+    <button id="register" disabled>1. Register test passkey</button>
+    <button id="authenticate" disabled>2. Verify passkey</button>
+    <button id="cancel" disabled>Cancel pending ceremony</button>
+    <p id="status" role="status" aria-live="polite">Enter the token to begin.</p>
+  </section>
+  <p>Each ceremony expires after 120 seconds. Touch ID may be offered, but the verifier only establishes WebAuthn user verification, not biometric identity or proof of humanity. Synced passkeys are possible.</p>
+  <p>Stopping the server forgets the enrollment. Remove the <strong>vollmacht-local-spike</strong> passkey for <strong>localhost</strong> from your password provider after testing. Do not remove unrelated localhost credentials.</p>
+</main></body>
+</html>

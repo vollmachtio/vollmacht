@@ -1,6 +1,6 @@
 # Development
 
-Install Rust using [rustup](https://rustup.rs/) and Python 3.11 or newer. From the repository root, rustup selects Rust 1.98.1 and the rustfmt and Clippy components specified in rust-toolchain.toml. Homebrew Rust also works when its version matches the pin and those components are present. The check script rejects mismatched rustc or Cargo versions because Homebrew does not enforce rustup's toolchain file.
+Install Rust using [rustup](https://rustup.rs/), Python 3.11 or newer, and Node.js 22 or newer (only for dependency-free browser-script tests). From the repository root, rustup selects Rust 1.98.1 and the rustfmt and Clippy components specified in rust-toolchain.toml. Homebrew Rust also works when its version matches the pin and those components are present. The check script rejects mismatched rustc or Cargo versions because Homebrew does not enforce rustup's toolchain file.
 
 ```sh
 cargo build
@@ -19,7 +19,7 @@ All packages inherit workspace metadata and lints. Publishing is disabled during
 
 ## Dependencies and CI
 
-The CLI remains dependency-free. The [WebAuthn probe](../spikes/webauthn/README.md) adds test-only dependencies, including native OpenSSL; its README records prerequisites and limitations. Commit Cargo.lock, review lockfile changes, and run locked builds in CI. Before adding a dependency, review its maintenance, RustSec advisories, license, default features, build scripts, native code, and transitive graph. Prefer minimal features and crates.io releases; git sources require a pinned revision and justification. Dependabot opens Cargo and Actions update PRs; it does not replace advisory scanning or review.
+The CLI remains dependency-free. The separate [WebAuthn probe](../spikes/webauthn/README.md) has an experimental localhost server and native OpenSSL dependencies; its README records prerequisites and limitations. Synthetic authenticator code remains development-only. Commit Cargo.lock, review lockfile changes, and run locked builds in CI. Before adding a dependency, review its maintenance, RustSec advisories, license, default features, build scripts, native code, and transitive graph. Prefer minimal features and crates.io releases; git sources require a pinned revision and justification. Dependabot opens Cargo and Actions update PRs; it does not replace advisory scanning or review.
 
 Run `python3 scripts/dependencies.py install` once to install the pinned cargo-deny checker and check the locked dependency graph. Subsequently run `python3 scripts/dependencies.py`. These commands require network access to refresh advisory/index data. CI runs the same advisory, license, and source checks in its dependencies job. The normal check.py command covers compile/test/lint, not dependency advisories.
 

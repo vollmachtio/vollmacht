@@ -1,11 +1,87 @@
 //! Synthetic authenticator tests only. UV is deliberately simulated by the
 //! upstream SoftPasskey; these tests do not demonstrate Touch ID or human consent.
 
+use webauthn_authenticator_rs::AuthenticatorBackend;
 use webauthn_authenticator_rs::{WebauthnAuthenticator, softpasskey::SoftPasskey};
 use webauthn_rs::prelude::*;
 use webauthn_rs_proto::UserVerificationPolicy;
 
 const ORIGIN: &str = "http://localhost:8374";
+
+#[test]
+fn validly_signed_wrong_rp_id_is_rejected() {
+    let server = WebauthnBuilder::new("localhost", &origin())
+        .unwrap()
+        .build()
+        .unwrap();
+    let mut auth = SoftPasskey::new(true);
+    let (options, state) = server
+        .start_passkey_registration(Uuid::from_u128(1), "test", "test", None)
+        .unwrap();
+    let response = auth
+        .perform_register(origin(), options.public_key, 120_000)
+        .unwrap();
+    let credential = server
+        .finish_passkey_registration(&response, &state)
+        .unwrap();
+    let (mut options, state) = server.start_passkey_authentication(&[credential]).unwrap();
+    options.public_key.rp_id = "wrong.example".into();
+    // Bypass only the synthetic client's RP check to obtain a genuinely signed wrong RP hash.
+    let response = auth
+        .perform_auth(origin(), options.public_key, 120_000)
+        .unwrap();
+    assert!(matches!(
+        server.finish_passkey_authentication(&response, &state),
+        Err(WebauthnError::InvalidRPIDHash)
+    ));
+}
+
+#[test]
+fn none_attestation_still_requires_user_presence() {
+    use serde_cbor_2::Value;
+    for present in [true, false] {
+        let server = WebauthnBuilder::new("localhost", &origin())
+            .unwrap()
+            .build()
+            .unwrap();
+        let (options, state) = server
+            .start_passkey_registration(Uuid::from_u128(1), "test", "test", None)
+            .unwrap();
+        let mut response = SoftPasskey::new(true)
+            .perform_register(origin(), options.public_key, 120_000)
+            .unwrap();
+        let Value::Map(mut attestation) =
+            serde_cbor_2::from_slice(response.response.attestation_object.as_ref()).unwrap()
+        else {
+            panic!("attestation map");
+        };
+        // 'none' attestation has no attestation signature. A successful control proves the
+        // negative result isolates UP rather than corrupting a self-attestation signature.
+        attestation.insert(Value::Text("fmt".into()), Value::Text("none".into()));
+        attestation.insert(
+            Value::Text("attStmt".into()),
+            Value::Map(Default::default()),
+        );
+        if !present {
+            let Value::Bytes(bytes) = attestation
+                .get_mut(&Value::Text("authData".into()))
+                .unwrap()
+            else {
+                panic!("authData bytes");
+            };
+            bytes[32] &= !1;
+        }
+        response.response.attestation_object = serde_cbor_2::to_vec(&Value::Map(attestation))
+            .unwrap()
+            .into();
+        let result = server.finish_passkey_registration(&response, &state);
+        if present {
+            assert!(result.is_ok());
+        } else {
+            assert!(matches!(result, Err(WebauthnError::UserNotPresent)));
+        }
+    }
+}
 
 struct Fixture {
     server: Webauthn,
