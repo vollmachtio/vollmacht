@@ -21,6 +21,8 @@ P03 and P04 must remain experiments until findings are incorporated in P06. Do n
 
 P03 is split for review: P03a adds an executable library compatibility probe and dependency checks; P03b adds the local browser ceremony and physical testing. P03a does not complete P03. Custom mandate-challenge support is a separate gate from successful random-challenge authentication. See [probe findings](../spikes/webauthn/README.md).
 
+P03c establishes synthetic custom-challenge feasibility with SimpleWebAuthn in an isolated Node experiment. P03d adds its opt-in [real-browser assessment](../spikes/simplewebauthn/BROWSER.md). Physical results must be recorded before treating browser feasibility as established. Neither step selects a production Node helper or resolves P04b protected key storage.
+
 P04 is also split: P04a tests a temporary Secure Enclave key, independent signature verification and encoding; P04b evaluates durable protected storage, signed identity/entitlements, restart and denied-access behavior. Ephemeral signing alone does not complete P04. See the [Apple key experiment](../spikes/macos-key/README.md). It can proceed independently while P03b physical browser evidence is collected.
 
 ## Remaining milestones

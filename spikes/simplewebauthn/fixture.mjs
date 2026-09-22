@@ -1,6 +1,7 @@
 // TEST ONLY: synthetic UV/UP flags; no person, browser or platform authenticator.
 import { createHash, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
 import { ORIGIN, RP_ID } from './probe.mjs';
+import { isoCBOR } from '@simplewebauthn/server/helpers';
 
 export function authenticator() {
   const { privateKey, publicKey } = generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
@@ -14,6 +15,23 @@ export function authenticator() {
   const id = randomBytes(32).toString('base64url');
   return {
     credential: { id, publicKey: new Uint8Array(publicKeyCOSE), counter: 0 },
+    register(challenge, { flags = 69, origin = ORIGIN, rpID = RP_ID, crossOrigin = false } = {}) {
+      const data = Buffer.alloc(55);
+      createHash('sha256').update(rpID).digest().copy(data);
+      data[32] = flags;
+      data.writeUInt16BE(32, 53);
+      const attestation = isoCBOR.encode(new Map([
+        ['fmt', 'none'], ['attStmt', new Map()],
+        ['authData', new Uint8Array(Buffer.concat([data, Buffer.from(id, 'base64url'), publicKeyCOSE]))],
+      ]));
+      return {
+        id, rawId: id, type: 'public-key', extensions: {},
+        response: {
+          clientDataJSON: Buffer.from(JSON.stringify({ type: 'webauthn.create', challenge, origin, crossOrigin })).toString('base64url'),
+          attestationObject: Buffer.from(attestation).toString('base64url'), transports: ['internal'],
+        },
+      };
+    },
     assert(challenge, overrides = {}) {
       const {
         origin = ORIGIN, rpID = RP_ID, flags = 5, type = 'webauthn.get',

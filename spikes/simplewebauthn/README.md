@@ -1,6 +1,6 @@
 # P03c: SimpleWebAuthn challenge-binding feasibility
 
-Experimental, test-only probe. No HTTP server, real enrollment, passkey creation, Touch ID prompt, GitHub access or issuer signing. The Rust browser probe is unchanged. This does not implement Human Mandates or complete P03.
+Experimental probe. P03c's synthetic test path performs no hardware operations. P03d adds an opt-in local browser server for real passkey enrollment and operation-binding assessment; see [browser instructions](BROWSER.md). Neither path accesses GitHub or signs issuer envelopes. The Rust browser probe is unchanged. This does not implement Human Mandates or complete P03.
 
 ## Question and result
 
@@ -23,20 +23,20 @@ npm test
 npm audit
 ```
 
-The local `.npmrc` disables dependency lifecycle scripts. `package-lock.json` pins transitive versions and integrity hashes. No global installation or TypeScript compiler is required; the probe uses native ESM JavaScript and Node's test runner. The package is private and has no executable service entry point.
+The local `.npmrc` disables dependency lifecycle scripts. `package-lock.json` pins transitive versions and integrity hashes. No global installation or TypeScript compiler is required; the probe uses native ESM JavaScript and Node's test runner. The package is private. `npm test` uses synthetic credentials and temporary loopback sockets, never a browser or hardware prompt. Only `npm run browser` starts the interactive service.
 
 ## Evidence and obligations
 
 Twenty-one tests cover exact challenge transmission/reconstruction, fresh nonces, operation and nonce mutation, signed wrong challenge/origin/RP/type, missing UP/UV, cross-origin rejection, credential identity substitution, wrong key with the enrolled ID, signature corruption, original client-data bytes, malformed/oversized client data, ceremony swaps, concurrent replay, deadline boundary, captured-input mutation and verification without a replay store.
 
-Test keys and ES256 assertions are generated using Node crypto, independently of the library's protocol verification. A small fixed COSE encoding exists only for synthetic public-key fixtures. UP and UV are simulated flags. Registration, hardware behavior and browser compatibility with this library have not been tested.
+Test keys and ES256 assertions are generated using Node crypto, independently of the library's protocol verification. A small fixed COSE encoding exists only for synthetic public-key fixtures. UP and UV are simulated flags. P03d adds synthetic none-attestation registration and session/HTTP tests. Physical hardware and browser results remain pending in the browser instructions.
 
 Two integration boundaries matter:
 
 - SimpleWebAuthn 14.0.2 tolerates `crossOrigin=true` when `topOrigin` is absent for browser compatibility. The first probe run caught this. Vollmacht's local-only policy rejects cross-origin or top-origin metadata explicitly using the public decoder; the signature is still checked over the original bytes.
 - The caller supplies the trusted credential. The wrapper checks both response IDs against that credential before verification. It also consumes in-memory state before any await, including failures. Repeated direct library verification of a zero-counter assertion succeeds: signature verification is not a replay database.
 
-The wrapper is not ready to expose as a service. It lacks a bounded transport, strict JSON/duplicate-key policy, enrollment and user-handle association, persistent credential/counter/backup-state lifecycle, revocation, durable execution reservation and crash recovery. Its 8 KiB operation and 16 KiB encoded client-data limits are experiment bounds, not a complete message-size policy. It returns no execution authority and performs no action.
+The P03c wrapper alone is not a service. The opt-in P03d session/HTTP layer adds bounded transport, a narrow JSON command encoding, single enrollment and user-handle association. Persistent credential lifecycle, revocation, durable execution reservation and crash recovery remain absent. Its 8 KiB operation and 16 KiB encoded client-data limits are experiment bounds. Neither layer returns execution authority or performs an action.
 
 ## Dependency and packaging assessment
 
@@ -50,4 +50,4 @@ A production helper would introduce a second runtime, npm supply-chain maintenan
 
 ## Recommendation and next gate
 
-Proceed to a separately reviewed browser experiment with SimpleWebAuthn before choosing it for v0. Reuse the existing loopback threat model, not the synthetic credential bootstrap. Require real Chrome/Safari registration and mandate-bound assertions, cancellation/timeout recovery, wrong-operation rejection and replay rejection. Then compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
+Complete the separately reviewed P03d browser experiment before choosing SimpleWebAuthn for v0. Require real Chrome/Safari registration and operation-bound assertions, cancellation/timeout recovery and replay rejection alongside automated wrong-operation rejection. Then compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
