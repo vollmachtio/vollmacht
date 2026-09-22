@@ -13,6 +13,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  challenge-probe:
+    name: challenge probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    defaults:
+      run:
+        working-directory: spikes/simplewebauthn
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select probe runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: spikes/simplewebauthn/.node-version
+          package-manager-cache: false
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci
+      - name: Check published dependency advisories
+        run: npm audit
+      - name: Run synthetic challenge tests
+        run: npm test
   check:
     name: check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}

@@ -25,9 +25,11 @@ Sources inspected on 2026-09-20:
 - [Core challenge generation](https://docs.rs/webauthn-rs-core/0.5.5/src/webauthn_rs_core/core.rs.html)
 - [Development API](https://docs.rs/webauthn-rs/0.6.1-dev/webauthn_rs/struct.Webauthn.html)
 
-## Next gate (P03b)
+## Next protocol gate (P03c)
 
 Before approving the mandate design, evaluate a supported custom-challenge API in another maintained verifier or document a reviewed protocol change. Do not turn the random-challenge probe into a claimed implementation of Human Mandates.
+
+The [SimpleWebAuthn experiment](../simplewebauthn/README.md) tests a public custom-challenge API separately. Its synthetic result is not physical browser evidence and does not change this probe's random-challenge behavior.
 
 The browser spike independently tests platform authentication on localhost. It adds loopback-only binding, exact origin/Host validation, an ephemeral protected enrollment session, required UV, body limits, CSRF protection, expiration, and atomic state consumption. Automated tests cover registration failure, a correctly signed wrong RP ID, missing UP in otherwise valid none-attestation registration, and concurrent replay. A none-attestation success control distinguishes missing UP from a broken attestation signature.
 

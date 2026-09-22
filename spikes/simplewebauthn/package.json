@@ -1,0 +1,9 @@
+{
+  "name": "vollmacht-simplewebauthn-probe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node check-lock.mjs && node test.mjs" },
+  "dependencies": { "@simplewebauthn/server": "14.0.2" }
+}
