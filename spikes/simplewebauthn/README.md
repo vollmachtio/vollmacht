@@ -29,7 +29,7 @@ The local `.npmrc` disables dependency lifecycle scripts. `package-lock.json` pi
 
 Twenty-one tests cover exact challenge transmission/reconstruction, fresh nonces, operation and nonce mutation, signed wrong challenge/origin/RP/type, missing UP/UV, cross-origin rejection, credential identity substitution, wrong key with the enrolled ID, signature corruption, original client-data bytes, malformed/oversized client data, ceremony swaps, concurrent replay, deadline boundary, captured-input mutation and verification without a replay store.
 
-Test keys and ES256 assertions are generated using Node crypto, independently of the library's protocol verification. A small fixed COSE encoding exists only for synthetic public-key fixtures. UP and UV are simulated flags. P03d adds synthetic none-attestation registration and session/HTTP tests. Physical hardware and browser results remain pending in the browser instructions.
+Test keys and ES256 assertions are generated using Node crypto, independently of the library's protocol verification. A small fixed COSE encoding exists only for synthetic public-key fixtures. UP and UV are simulated flags. P03d adds synthetic none-attestation registration and session/HTTP tests. User-reported Chrome/Safari Touch ID and recovery results, Chrome replay rejection, and remaining evidence gaps are recorded in the [browser matrix](BROWSER.md).
 
 Two integration boundaries matter:
 
@@ -50,4 +50,4 @@ A production helper would introduce a second runtime, npm supply-chain maintenan
 
 ## Recommendation and next gate
 
-Complete the separately reviewed P03d browser experiment before choosing SimpleWebAuthn for v0. Require real Chrome/Safari registration and operation-bound assertions, cancellation/timeout recovery and replay rejection alongside automated wrong-operation rejection. Then compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
+The P03d results support continuing the [helper trust-boundary and packaging assessment](../../docs/helper-assessment.md), not production adoption. Complete the remaining manual evidence before closing the browser gate. Compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
