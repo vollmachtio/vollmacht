@@ -1,0 +1,21 @@
+{
+  "purpose": "Transport examples only; not valid WebAuthn evidence",
+  "framing": [
+    {"name": "empty_object_schema_rejected", "prefix_hex": "00000002", "body_utf8": "{}", "framing_valid": true, "schema_valid": false},
+    {"name": "zero_length_rejected", "prefix_hex": "00000000", "body_utf8": "", "framing_valid": false, "schema_valid": false},
+    {"name": "oversized_prefix_rejected", "prefix_hex": "00010001", "body_utf8": "", "framing_valid": false, "schema_valid": false}
+  ],
+  "invalid_json_bodies": [
+    {"name": "duplicate_version", "body_utf8": "{\"version\":1,\"version\":1}", "expected": "helper_protocol_error"},
+    {"name": "exponent_version", "body_utf8": "{\"version\":1e0}", "expected": "helper_protocol_error"},
+    {"name": "null_root", "body_utf8": "null", "expected": "helper_protocol_error"}
+  ],
+  "rejection_response": {
+    "version": 1,
+    "kind": "verification_result",
+    "request_id": "000102030405060708090a0b0c0d0e0f",
+    "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "outcome": "rejected",
+    "code": "verification_rejected"
+  }
+}

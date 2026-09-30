@@ -51,7 +51,7 @@ Runtime lifecycle selection is a release gate, not a reason to silently change t
 
 | Task | Scope and likely files | Tests and acceptance | Dependency |
 | :--- | :--- | :--- | :--- |
-| P03e.1 | Experimental protocol specification and vectors under `spikes/helper-protocol/` | Exact fields, framing, maximum sizes, state transitions, trust assumptions and failure codes reviewed; no production schema claim | This assessment |
+| P03e.1 | [Experimental assertion protocol and vectors](../spikes/helper-protocol/README.md) | Exact fields, framing, maximum sizes, state transitions, trust assumptions and failure codes; registration/options deferred, no production schema claim | This assessment |
 | P03e.2 | Rust harness plus fake helper in that directory | Wrong ID/challenge, duplicate/unknown fields, truncated/oversized output, stderr flood, timeout, crash, cancellation and late response all fail closed; children reaped | P03e.1 |
 | P03e.3 | Wire real SimpleWebAuthn through the experimental harness | Existing negative verification tests plus end-to-end request/evidence correlation; no issuer keys or GitHub access | P03e.2 |
 | P03f | Packaging measurements and reproducible developer setup, documented under `spikes/helper-protocol/` | Clean macOS setup, missing/wrong runtime errors, measured overhead, dependency inventory and explicit signing/update gaps | P03e.3 |
