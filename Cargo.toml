@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/cli", "spikes/webauthn", "spikes/macos-key", "spikes/helper-protocol"]
+members = ["crates/cli", "spikes/webauthn", "spikes/macos-key", "spikes/helper-protocol", "spikes/helper-launcher"]
 resolver = "3"
 
 [workspace.package]

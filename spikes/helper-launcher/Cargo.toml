@@ -1,0 +1,36 @@
+[package]
+name = "vollmacht-helper-launcher"
+description = "Experimental exec-only descriptor hygiene boundary"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+libc = "=0.2.189"
+# Used by the fake-helper test fixture, not by the launcher executable.
+vollmacht-helper-probe = { path = "../helper-protocol" }
+serde_json = "=1.0.151"
+
+[dev-dependencies]
+base64 = "=0.21.7"
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+all = "warn"
+
+[[bin]]
+name = "vollmacht-helper-launcher"
+path = "src/main.rs"
+
+[[bin]]
+name = "fake-helper"
+path = "../helper-protocol/tests/fixtures/fake-helper.rs"
+
+[[bin]]
+name = "descriptor-probe"
+path = "tests/fixtures/descriptor-probe.rs"

@@ -53,6 +53,9 @@ mod tests {
                 reaped: Some(reaped.clone()),
             };
             let launch = Launch {
+                // This unit test exercises ownership faults only; integration
+                // tests in helper-launcher exercise the actual exec boundary.
+                launcher: PathBuf::from("/usr/bin/env"),
                 executable: PathBuf::from("/bin/cat"),
                 helper: None,
                 directory: std::env::temp_dir(),
@@ -77,6 +80,7 @@ mod tests {
 /// This experiment does not establish ownership, signing or file integrity.
 #[derive(Clone)]
 pub struct Launch {
+    pub launcher: PathBuf,
     pub executable: PathBuf,
     pub helper: Option<PathBuf>,
     pub directory: PathBuf,
@@ -84,7 +88,8 @@ pub struct Launch {
 
 impl Launch {
     pub(crate) fn valid(&self) -> bool {
-        self.executable.is_absolute()
+        self.launcher.is_absolute()
+            && self.executable.is_absolute()
             && self.directory.is_absolute()
             && self.helper.as_ref().is_none_or(|path| path.is_absolute())
     }

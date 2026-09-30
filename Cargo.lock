@@ -1331,6 +1331,16 @@ name = "vollmacht-cli"
 version = "0.1.0-dev"
 
 [[package]]
+name = "vollmacht-helper-launcher"
+version = "0.1.0-dev"
+dependencies = [
+ "base64",
+ "libc",
+ "serde_json",
+ "vollmacht-helper-probe",
+]
+
+[[package]]
 name = "vollmacht-helper-probe"
 version = "0.1.0-dev"
 dependencies = [
