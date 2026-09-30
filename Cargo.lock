@@ -1330,6 +1330,15 @@ name = "vollmacht-cli"
 version = "0.1.0-dev"
 
 [[package]]
+name = "vollmacht-helper-probe"
+version = "0.1.0-dev"
+dependencies = [
+ "base64",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "vollmacht-macos-key-probe"
 version = "0.1.0-dev"
 dependencies = [

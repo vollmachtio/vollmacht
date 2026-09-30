@@ -1,6 +1,14 @@
 # P03e.1: assertion-helper protocol
 
-Status: experimental specification only. No executable, production mandate schema, enrollment service or execution authority is added here. This narrows the [helper assessment](../../docs/helper-assessment.md) to assertion verification against an already trusted test credential. Registration and option generation are explicitly deferred to a separately reviewed protocol extension. P03e.3 may use a synthetic trusted fixture; it must not silently import browser enrollment as trusted production state.
+Status: experimental specification with the P03e.2a Rust codec foundation. No executable, production mandate schema, enrollment service or execution authority is added here. This narrows the [helper assessment](../../docs/helper-assessment.md) to assertion verification against an already trusted test credential. Registration and option generation are explicitly deferred to a separately reviewed protocol extension. P03e.3 may use a synthetic trusted fixture; it must not silently import browser enrollment as trusted production state.
+
+## Current implementation boundary
+
+`cargo test -p vollmacht-helper-probe` runs the bounded incremental frame decoder, strict request/response parsing, snapshot counter/backup checks and an in-memory fake-helper round trip. It uses the existing locked dependency versions; no new third-party package version is introduced. The workspace CI includes these tests automatically.
+
+`Request::parse` validates transport syntax only, not trusted enrollment, key algorithms, ID matching or signatures. It preserves base64url-encoded signed fields when serializing a request. `decode_response` returns a helper claim, never final authorization. Its checks use a snapshot, not a live registry. `FrameDecoder::finish` must only be called after the transport observes EOF; it does not observe process exit itself. Parse/framing errors carry fixed codes, not evidence or child diagnostics.
+
+The fake helper only parses a synthetic request and returns a rejection, without creating a child process. P03e.2b must add process spawning, stdout/stderr handling, deadlines, cancellation, cleanup, registry revision checks and single-use state. No process/replay/crash security property is established by this codec. The lifecycle requirements below remain specification requirements, not completed implementation claims.
 
 ## Security boundary
 
@@ -83,7 +91,7 @@ All codes deny verification. For competing failures, preserve the first terminal
 
 The [vectors](vectors.json) are deterministic transport examples, not cryptographic evidence. They deliberately use repeated bytes and rejection outcomes; their values must never become live nonce defaults. The length-prefix examples include a structurally invalid empty object to separate framing acceptance from schema acceptance.
 
-P03e.2 must implement these tests before real verification is wired:
+P03e.2a covers codec tests; P03e.2b must complete the lifecycle and coordinator tests below before real verification is wired:
 
 1. Round-trip the rejection vector through Rust and a fake helper; verify bytes and big-endian length, fragmented reads/writes and exact EOF.
 2. Reject zero/oversized prefixes, truncation, trailing bytes, second frames, invalid UTF-8/BOM, duplicate keys at every depth, unknown fields, depth overflow, invalid base64url, numeric edge cases and unsupported versions.
