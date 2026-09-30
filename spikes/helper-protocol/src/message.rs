@@ -84,6 +84,9 @@ fn binary(value: &str, min: usize, max: usize) -> Result<(), Error> {
 }
 
 impl Request {
+    pub(crate) fn counter(&self) -> u32 {
+        self.0.credential.counter
+    }
     /// Validates transport syntax only, not key trust, freshness or signatures.
     pub fn parse(bytes: &[u8]) -> Result<Self, Error> {
         let request: RequestData =
