@@ -1,6 +1,6 @@
 # P03d: real-browser assessment
 
-Status: user-reported Chrome/Safari physical testing supports browser feasibility, with remaining evidence gaps below. This is not the Rust/Node production helper integration.
+Status: user-reported Chrome/Safari functional matrix completed; environment versions and cleanup confirmed on 2026-09-29. Evidence limits remain below. This is not the Rust/Node production helper integration.
 
 ## Run on your Mac
 
@@ -41,13 +41,13 @@ Automated tests use synthetic none-attestation credentials and loopback sockets.
 
 ## User-reported physical results
 
-Reports received by 2026-09-22. These are the tester's reports, not independently observed hardware tests; exact test dates and environment versions were not captured.
+Initial reports were recorded on 2026-09-22, with subsequent Safari replay confirmation. On 2026-09-29 the tester confirmed the versions below were used during testing and confirmed test-passkey cleanup. These are user reports, not independently observed hardware tests; exact test timestamps were not captured. Test environment: macOS 26.6.
 
 | Browser and version | Register | Bound approval | Cancel/retry | Timeout/retry | Replay | Prompt method |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Chrome: version unrecorded | Passed | Passed | Passed | Passed | Returned `missing_or_expired_ceremony` | Touch ID reported for registration and approval |
-| Safari: version unrecorded | Passed | Passed | Passed | Passed | Not reported | Touch ID reported for registration and approval |
+| Chrome 153.0.8010.36 (Official Build), arm64 | Passed | Passed | Passed | Passed | Returned `missing_or_expired_ceremony` | Touch ID reported for registration and approval |
+| Safari 26.6 (21624.4.5.11.5) | Passed | Passed | Passed | Passed | Returned `missing_or_expired_ceremony` after replaying `finish_authentication` | Touch ID reported for registration and approval |
 
-The Chrome replay report confirms the error string, not an independently observed HTTP status or prompt count. Browser timeout/retry succeeded; the exact server deadline is covered by automated tests, not a timed physical measurement. Fresh server sessions per browser and test-passkey cleanup were not explicitly confirmed.
+The replay reports confirm the error string, not independently observed HTTP status or prompt counts for the identified replay requests. Earlier Safari 409 output was ambiguous until the tester located `finish_authentication`; it is not separate status evidence for the final replay. Browser timeout/retry succeeded; the exact server deadline is covered by automated tests, not a timed physical measurement. Fresh server sessions per browser were not explicitly confirmed. The tester confirmed the requested stop-and-cleanup steps were completed.
 
-Remaining evidence: Safari manual replay, macOS and browser versions at test time, and cleanup confirmation. Do not infer historical versions from current installations. Do not record tokens, credential IDs, assertion bytes or biometric information. These gaps do not prevent further design assessment, but the manual matrix is not complete. P06 must still assess Node distribution, process trust, protected storage and physical findings before selecting this implementation. See the [helper assessment](../../docs/helper-assessment.md).
+The reported functional matrix is complete for this feasibility experiment, subject to the observation limits above. Do not record tokens, credential IDs, assertion bytes or biometric information. P06 must still assess Node distribution, process trust, protected storage and physical findings before selecting this implementation. See the [helper assessment](../../docs/helper-assessment.md).

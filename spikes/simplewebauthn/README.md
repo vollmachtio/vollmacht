@@ -50,4 +50,4 @@ A production helper would introduce a second runtime, npm supply-chain maintenan
 
 ## Recommendation and next gate
 
-The P03d results support continuing the [helper trust-boundary and packaging assessment](../../docs/helper-assessment.md), not production adoption. Complete the remaining manual evidence before closing the browser gate. Compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
+The completed user-reported P03d functional matrix supports continuing the [helper trust-boundary and packaging assessment](../../docs/helper-assessment.md), not production adoption. Environment versions and cleanup were confirmed on 2026-09-29; observation limits remain documented in the matrix. Compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.

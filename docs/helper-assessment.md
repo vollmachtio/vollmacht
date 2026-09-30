@@ -4,7 +4,7 @@ Status: preliminary design assessment, 2026-09-22. Not an accepted ADR or produc
 
 ## What the evidence establishes
 
-The public SimpleWebAuthn API accepts and checks an operation-derived challenge. Synthetic tests cover tampering and replay/state failures. The [physical matrix](../spikes/simplewebauthn/BROWSER.md) records user-reported Touch ID success and recovery in Chrome/Safari, plus Chrome replay rejection. It still lacks Safari replay and historical environment versions. This supports feasibility, not a production security claim.
+The public SimpleWebAuthn API accepts and checks an operation-derived challenge. Synthetic tests cover tampering and replay/state failures. The [physical matrix](../spikes/simplewebauthn/BROWSER.md) records user-reported Touch ID success, recovery and replay rejection in Chrome/Safari. Historical environment versions and cleanup were confirmed on 2026-09-29. The matrix retains observation limits. This supports feasibility, not a production security claim.
 
 The experiment hashes a fixed domain, separate random nonce and opaque payload bytes. This is not yet the canonical Human Mandate construction. P06 must settle RFC 8785 serialization, nonce placement, domain separation and evidence format, with cross-language vectors.
 
