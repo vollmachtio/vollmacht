@@ -26,6 +26,11 @@ def main():
     subprocess.run(
         ["cargo", "deny", option + "workspace", option + "locked", "check"], cwd=root, check=True
     )
+    subprocess.run(
+        ["cargo", "deny", option + "manifest-path", "spikes/canonicalization/Cargo.toml",
+         option + "locked", option + "config", "deny.toml", "check"],
+        cwd=root, check=True,
+    )
 
 
 if __name__ == "__main__":
