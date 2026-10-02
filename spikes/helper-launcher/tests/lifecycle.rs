@@ -24,6 +24,7 @@ impl Sandbox {
     }
     fn launch(&self, mode: &str) -> Launch {
         Launch {
+            launcher: PathBuf::from(env!("CARGO_BIN_EXE_vollmacht-helper-launcher")),
             executable: PathBuf::from(env!("CARGO_BIN_EXE_fake-helper")),
             helper: Some(self.0.join(mode)),
             directory: self.0.clone(),
@@ -217,7 +218,7 @@ fn disabled_registry_and_bad_launcher_do_not_execute() {
     for path in [PathBuf::from("relative"), temp.0.join("absent")] {
         let c = coordinator(Duration::from_secs(5));
         let mut launch = temp.launch("success");
-        launch.executable = path;
+        launch.launcher = path;
         assert_eq!(c.verify(launch), Err(Failure::HelperLaunchFailed));
     }
     assert!(!temp.0.join("pid").exists());

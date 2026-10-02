@@ -4,7 +4,7 @@ Status: experimental specification with the P03e.2a Rust codec and P03e.2b singl
 
 ## Current implementation boundary
 
-`cargo test -p vollmacht-helper-probe` runs the bounded frame decoder, strict parsing, snapshot checks, in-memory round trip and real fake-child lifecycle tests. It uses existing locked dependency versions, adding Tokio process/I/O features but no new third-party package version. Workspace CI includes these tests automatically.
+`cargo test -p vollmacht-helper-probe` runs the bounded frame decoder, strict parsing, snapshot checks, in-memory round trip and injected ownership-fault unit tests. `cargo test -p vollmacht-helper-launcher` runs real fake-child lifecycle and descriptor tests through the [exec-only launcher](../helper-launcher/README.md). Existing locked dependency versions are reused. Workspace CI includes both packages automatically.
 
 `Request::parse` validates transport syntax only, not trusted enrollment, key algorithms, ID matching or signatures. It preserves base64url-encoded signed fields when serializing a request. `decode_response` returns a helper claim, never final authorization. Its checks use a snapshot, not a live registry. `FrameDecoder::finish` must only be called after the transport observes EOF; it does not observe process exit itself. Parse/framing errors carry fixed codes, not evidence or child diagnostics.
 
@@ -14,7 +14,7 @@ A dedicated owner thread survives caller timeout, including a blocked launch tha
 
 Tests exercise real child failures, EOF/exit requirements, cancellation/concurrency, pre-claim and in-flight registry changes, output caps, request-size boundaries and absence of the child after normal cleanup. A one-byte in-memory pipe deterministically tests cancellation of blocked stdin writes. Delayed-launch and delayed-reaping unit tests use test-only faults to check disabled state and eventual reaping; they do not reproduce an actual kernel failure. Cleanup and runtime timing include ordinary scheduler tolerance.
 
-Unmet embedding gate: the launcher does not close arbitrary inheritable descriptors created elsewhere in a host process. Its own standard streams are private pipes and environment inheritance is cleared, but this is not a general handle-sanitization or sandbox guarantee. Before using this outside controlled fake-child tests, implement and test inherited-handle hygiene or establish a reviewed launcher boundary. Runtime/helper file integrity and malicious-descendant containment are also not established. No WebAuthn library, issuer key or GitHub token is present in this harness.
+P03e.2c adds an explicit `Launch.launcher` path and an exec-only native boundary to prevent arbitrary inherited file descriptors from reaching the target helper. It retains the child PID and private standard streams; no fallback direct launch exists. See the [launcher safety and platform limits](../helper-launcher/README.md). This is descriptor hygiene, not sandboxing. Launcher/runtime/helper file integrity and malicious-descendant containment are still not established. No WebAuthn library, issuer key or GitHub token is present in this harness.
 
 ## Security boundary
 

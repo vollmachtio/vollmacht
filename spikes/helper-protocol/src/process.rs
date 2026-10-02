@@ -158,7 +158,8 @@ async fn execute(
     let bytes = request
         .to_frame()
         .map_err(|_| record(&state, Failure::HelperProtocolError))?;
-    let mut command = Command::new(launch.executable);
+    let mut command = Command::new(launch.launcher);
+    command.arg(launch.executable);
     if let Some(helper) = launch.helper {
         command.arg(helper);
     }
