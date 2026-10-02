@@ -6,7 +6,7 @@ Reproducible here means a pinned, repeatable setup and test procedure, not byte-
 
 ## Reproduce from a fresh checkout
 
-Use a trusted checkout and toolchain. Requirements: Python 3.11+, the Rust version in `rust-toolchain.toml`, Node 26.5.1 from `.node-version`, npm, and the native build prerequisites in [development](../../docs/development.md). On macOS the build needs the developer tools/SDK and usable OpenSSL development libraries; the hosted macOS runner already provides its native build environment. These instructions assume dependencies/tools were obtained through a trusted installation process; the preflight does not establish their provenance.
+Use a trusted checkout and toolchain. Requirements: Python 3.11+, the Rust version in `rust-toolchain.toml`, Node 24.21.0 from `.node-version`, npm, and the native build prerequisites in [development](../../docs/development.md). On macOS the build needs the developer tools/SDK and usable OpenSSL development libraries; the hosted macOS runner already provides its native build environment. These instructions assume dependencies/tools were obtained through a trusted installation process; the preflight does not establish their provenance. The [P03f.2 runtime assessment](RUNTIME.md) explains the LTS pin change; the P03f.1 observations below remain historical.
 
 Run from the repository root:
 
@@ -79,6 +79,6 @@ Primary sources checked on 2026-10-01:
 - [Node security releases](https://nodejs.org/en/blog/vulnerability) is separate from npm audit. A passing npm audit does not certify the Node binary or OpenSSL build. No claim is made that the retained baseline pin is free of known runtime vulnerabilities.
 - [SimpleWebAuthn runtime requirements](https://simplewebauthn.dev/docs/packages/server) document Node 22+. That floor does not establish that every supported-major patch has passed Vollmacht's integration tests.
 
-Next, P03f.2 should obtain a verified upstream LTS runtime in an isolated location, run the full macOS/Linux helper and browser/session synthetic matrix, repeat these measurements, record native dependency/architecture differences, and propose a separately reviewed pin change. Never silently fall back to a different runtime after verification failure. Keep historic physical-browser evidence labeled with its original runtime; rerun hardware tests if the chosen change affects the ceremony.
+The [P03f.2 assessment](RUNTIME.md) records the isolated LTS runtime, validation and pin decision. Never silently fall back to a different runtime after verification failure. Keep historic physical-browser evidence labeled with its original runtime; rerun hardware tests if the chosen change affects the ceremony.
 
 Before any user distribution, explicitly decide external versus bundled Node, verify the full artifact/dependency closure, produce license notices/SBOM, establish trusted install/update ownership, and assess Apple signing/notarization and required entitlements. Test missing/corrupt runtime, interrupted updates, downgrade/rollback and untrusted replacement. An absolute path or fresh local hash alone is not an integrity policy. These are release gates, not completed work in P03f.1.

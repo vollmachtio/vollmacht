@@ -4,7 +4,7 @@ Status: user-reported Chrome/Safari functional matrix completed; environment ver
 
 ## Run on your Mac
 
-Stop the old Rust probe first: both intentionally use the already-tested origin http://localhost:8374. From the repository root, using Node 26.5.1:
+Stop the old Rust probe first: both intentionally use the already-tested origin http://localhost:8374. From the repository root, using the current Node pin in `.node-version` (24.21.0):
 
 ```sh
 cd spikes/simplewebauthn
@@ -40,6 +40,8 @@ The command body must match JSON.stringify's compact encoding exactly. This deli
 Automated tests use synthetic none-attestation credentials and loopback sockets. They cover registration UP/UV/origin/RP/cross-origin rejection, user-handle mismatch, replay, pending/cancel/expiry rules, concurrent enrollment, HTTP policy, size limits and security headers. The reused browser script has its existing seven tests in the workspace check. None of these is physical authenticator evidence.
 
 ## User-reported physical results
+
+These historical results were collected for the original Node 26.5.1-pinned experiment; the tester reports did not separately confirm a Node version. P03f.2's 24.21.0 runtime change has synthetic coverage, not a repeated physical Touch ID matrix. Do not relabel the historical results as LTS hardware evidence.
 
 Initial reports were recorded on 2026-09-22, with subsequent Safari replay confirmation. On 2026-09-29 the tester confirmed the versions below were used during testing and confirmed test-passkey cleanup. These are user reports, not independently observed hardware tests; exact test timestamps were not captured. Test environment: macOS 26.6.
 
