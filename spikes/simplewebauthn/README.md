@@ -14,7 +14,7 @@ Payload bytes are deliberately opaque. The test JSON is a fixture, not a canonic
 
 ## Run
 
-Use Node 26.5.1, the runtime pinned for this experiment, then:
+Use Node 24.21.0, the LTS runtime pinned for this experiment, then:
 
 ```sh
 cd spikes/simplewebauthn
@@ -44,7 +44,7 @@ At installation on 2026-09-21, the lock resolved 25 dependency packages; npm rep
 
 `npm test` also checks lockfile source URLs, SHA-512 integrity, absence of declared install scripts/links, and the reviewed license set (MIT, Apache-2.0, BSD-3-Clause, 0BSD), with five negative controls. These are metadata checks, not a package-content audit. Dependabot tracks this isolated npm graph separately from Cargo.
 
-The upstream [runtime documentation](https://simplewebauthn.dev/docs/packages/server) lists Node 22+ and Deno 2.4+. Package metadata declares Node >=20; we use the documented floor rather than interpreting metadata as a production support promise. Only Node 26.5.1 was tested locally. Importing v14 on that runtime prints experimental Web Crypto/ML-DSA capability warnings even though this probe uses ES256. We do not suppress them or claim PQC support.
+The upstream [runtime documentation](https://simplewebauthn.dev/docs/packages/server) lists Node 22+ and Deno 2.4+. Package metadata declares Node >=20; we use the documented floor rather than interpreting metadata as a production support promise. Node 26.5.1 was the original baseline; P03f.2 moves the experiment pin to 24.21.0 LTS after synthetic validation. See the [runtime assessment](../helper-protocol/RUNTIME.md) for provenance, results and limits. Capability warnings on the original runtime were not evidence of PQC support; this probe uses ES256.
 
 A production helper would introduce a second runtime, npm supply-chain maintenance, signed/notarized packaging questions and a Rust/helper protocol boundary. Helper responses cannot be trusted merely because they contain `verified: true`; request, operation and evidence must stay bound across that boundary, with clear process trust and failure behavior. None of that integration is authorized by this experiment.
 
