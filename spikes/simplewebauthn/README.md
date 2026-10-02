@@ -54,6 +54,8 @@ The completed user-reported P03d functional matrix supports continuing the [help
 
 ## P03e.3 private assertion helper
 
+For the release-build developer preflight, full dependency inventory and repeatable process-latency measurements, see [P03f.1 developer setup](../helper-protocol/DEVELOPMENT.md). It retains the experiment runtime pin and does not package a production app.
+
 `helper.mjs` is a separate one-shot, private-pipe entry point. It does not run the browser server or create a challenge. Rust supplies the expected challenge and trusted credential snapshot; the helper verifies original assertion bytes with the existing pinned SimpleWebAuthn dependency. It restricts keys to ES256/P-256, requires UP and UV, checks both credential IDs and any supplied user handle, rejects cross-origin/top-origin data and changed backup eligibility, and reports only fixed result codes. Rust retains final deadline, registry revision, counter and single-use checks. An absent user handle is allowed for a non-discoverable assertion; a supplied handle must match.
 
 `helper-protocol.mjs` implements the experimental assertion envelope, not WebAuthn cryptography. It rejects duplicate keys before normalization, noncanonical binary encodings, unknown fields, invalid integer lexemes, excess depth and size, and anything except one complete frame followed by EOF. This deliberate JSON subset mirrors the Rust schema. Malformed requests exit without reflecting unvalidated identifiers; invalid evidence in a valid request returns a correlated rejection. The Rust supervisor bounds process lifetime and both output streams.
