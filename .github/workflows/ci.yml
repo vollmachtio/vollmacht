@@ -75,6 +75,9 @@ jobs:
           package-manager-cache: false
       - name: Check workspace
         run: python3 scripts/check.py
+      - name: Check compile-only Apple key profiles
+        if: runner.os == 'macOS'
+        run: python3 spikes/macos-key/swift/run.py
   dependencies:
     name: dependencies
     runs-on: ubuntu-24.04
