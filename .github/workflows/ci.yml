@@ -42,12 +42,17 @@ jobs:
         run: npm test
       - name: Build real-helper test driver with pinned Rust
         working-directory: .
-        run: cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --locked
+        run: cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --release --locked
       - name: Exercise real verifier through Rust and native launcher
         run: npm run test:helper-e2e
         env:
-          VOLLMACHT_TEST_DRIVER: ${{ github.workspace }}/target/debug/examples/real-helper
-          VOLLMACHT_TEST_LAUNCHER: ${{ github.workspace }}/target/debug/vollmacht-helper-launcher
+          VOLLMACHT_TEST_DRIVER: ${{ github.workspace }}/target/release/examples/real-helper
+          VOLLMACHT_TEST_LAUNCHER: ${{ github.workspace }}/target/release/vollmacht-helper-launcher
+      - name: Report developer preflight, inventory and process latency
+        run: python3 ../helper-protocol/dev.py measure "$(command -v node)" "$VOLLMACHT_TEST_LAUNCHER" "$VOLLMACHT_TEST_DRIVER"
+        env:
+          VOLLMACHT_TEST_DRIVER: ${{ github.workspace }}/target/release/examples/real-helper
+          VOLLMACHT_TEST_LAUNCHER: ${{ github.workspace }}/target/release/vollmacht-helper-launcher
   check:
     name: check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
