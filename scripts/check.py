@@ -26,6 +26,7 @@ def main():
     commands = [
         ["python3", "spikes/helper-protocol/dev_test.py"],
         ["python3", "spikes/macos-key/swift/test_run.py"],
+        ["python3", "scripts/check-canonicalization.py"],
         ["node", "spikes/webauthn/tests/browser.cjs"],
         ["cargo", "fmt", option + "all", option, option + "check"],
         ["cargo", "clippy", option + "workspace", option + "all-targets", option + "locked", option, "-D", "warnings"],

@@ -1,0 +1,22 @@
+[package]
+name = "vollmacht-canonicalization-spike"
+version = "0.1.0-dev"
+edition = "2024"
+rust-version = "1.98.1"
+license = "Apache-2.0"
+publish = false
+description = "Isolated JCS serialization assessment, not a production parser"
+
+[workspace]
+
+[dev-dependencies]
+serde_jcs = "=0.2.0"
+serde_json = "=1.0.151"
+openssl = "=0.10.81"
+base64 = "=0.21.7"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"
