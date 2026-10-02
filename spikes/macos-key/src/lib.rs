@@ -11,6 +11,8 @@ use openssl::{
     sign::Verifier,
 };
 
+pub mod durable;
+
 pub const MESSAGE: &[u8] = b"vollmacht:macos-key-probe:v1\0fixed-test-message-not-a-mandate";
 
 #[derive(Debug, PartialEq, Eq)]
