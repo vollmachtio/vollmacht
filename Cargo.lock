@@ -1335,7 +1335,9 @@ name = "vollmacht-helper-launcher"
 version = "0.1.0-dev"
 dependencies = [
  "base64",
+ "getrandom 0.4.3",
  "libc",
+ "openssl",
  "serde_json",
  "vollmacht-helper-probe",
 ]

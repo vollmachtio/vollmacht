@@ -16,6 +16,8 @@ serde_json = "=1.0.151"
 
 [dev-dependencies]
 base64 = "=0.21.7"
+getrandom = "=0.4.3"
+openssl = "=0.10.81"
 
 [lints.rust]
 unsafe_code = "deny"
