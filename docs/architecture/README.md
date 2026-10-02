@@ -2,6 +2,8 @@
 
 Status: **PROPOSED**, 2026-10-01. This package prepares P06 in parallel with P04b. It does not accept an ADR, freeze a protocol, complete P04/P06, or authorize P07 implementation. Existing experiments remain experiments. Read the [design baseline](../design-baseline.md), [helper assessment](../helper-assessment.md) and [candidate contract](mandate-contract.md) together.
 
+Follow-up proposals cover [trusted enrollment and recovery](enrollment.md) and [GitHub merge preconditions](github-preconditions.md). They record unresolved acceptance gates, not completed implementation.
+
 ## ADR candidate 1: ownership and evidence
 
 Propose Rust-owned transport, enrollment, immutable operation construction, registry, clock, policy, issuer signing, reservation, audit and GitHub execution. A private, one-shot SimpleWebAuthn helper performs full WebAuthn verification against Rust-supplied expectations. Retain the tested launcher and bounded lifecycle rather than create another transport. Registration is a separate, not-yet-implemented helper operation.
@@ -37,7 +39,7 @@ Pending ceremonies and outstanding execution challenges do not survive process r
 | Helper architecture | Explicit acceptance of trusted helper; complete library checks, launch/runtime integrity plan, registration design | Assertion experiments support feasibility; no production enrollment |
 | P04b | Restart lookup, denied access, locked-device behavior and signed identity/entitlement matrix on supported Mac | Ephemeral P04a success does not establish durability or access isolation |
 | Canonical contract | Independent exact byte/hash/signature vectors and parser limits; resolve candidate details below | Documented candidate, no frozen vectors |
-| Standards | Refresh dated source register and mappings before accepting P06 | Existing 2026-09-20 snapshot, no draft compliance claim |
+| Standards | Refresh dated source register and mappings before accepting P06 | See the dated [source register](../standards-sources.md); no draft compliance claim |
 | State/enforcement | Crash/concurrency/rollback tests, controlled GitHub credential, current API precondition assessment | Implementation follows P06; not supplied by signing or helper success |
 
 P04b code and software tests can proceed concurrently with document review. Hardware identity, entitlement, restart and denial claims require actual results. P07 starts only after a follow-up accepted P06 change records the gate results and frozen vectors. Packaging can remain a documented release gate, but a usable protected issuer-key path cannot be presumed from temporary signing.
