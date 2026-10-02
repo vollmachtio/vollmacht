@@ -51,7 +51,9 @@ The runnable v0 prototype completes at M5. Version 0.1 is the packaged experimen
 
 ## Per-PR execution contract
 
-Before editing, inspect the base revision, local instructions, and unrelated changes. Implement only the selected task. Run checks proportional to the change and capture commands/results. Request a separate adversarial review, fix findings, and obtain review of substantive fixes. Commit the reviewed state, push its branch, and open a PR with the review and validation evidence. Do not merge automatically.
+Before editing, inspect the base revision, local instructions, and unrelated changes. Implement only the selected task. Run checks proportional to the change and capture commands/results. Request a separate adversarial review, fix findings, and obtain review of substantive fixes. Commit the reviewed state, push its branch, and open a PR with the review and validation evidence. The maintainer now authorizes automatic merging of in-plan PRs after independent review and required CI pass on the exact head revision. Pause for clarification, material deviations, permission blockers or user-assisted hardware steps; never bypass branch protections.
+
+Independent workstreams may execute in parallel with disjoint file ownership and coordinated integration. P04b lifecycle software tests and P06 proposed design documents can proceed together, but proposed documents are not a frozen specification. P04b's native/hardware evidence remains a gate for accepting the architecture, and P07 still waits for that acceptance.
 
 If GitHub authentication prevents PR creation, preserve the completed local branch and report the exact missing prerequisite. Never claim a PR exists until GitHub returns its URL. Dependent work can use explicitly stacked branches; PR descriptions must name their base and dependencies. Independent tasks can branch from the latest agreed foundation.
 

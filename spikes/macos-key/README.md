@@ -1,5 +1,7 @@
 # Apple issuer-key experiment (P04a)
 
+P04b now includes a [portable durable-key lifecycle contract](DURABLE.md) and deterministic fake-backend tests. It has no native persistence backend and does not change the CLI below.
+
 This isolated experiment requests a temporary Secure Enclave P-256 key through maintained Rust bindings, signs one fixed test message, and verifies the signature independently using OpenSSL. It is not a Human Mandate signer or a production key provider. It has no input signing API, listener, persistence, credential lookup, or software fallback. The main CLI remains unchanged.
 
 ## Run

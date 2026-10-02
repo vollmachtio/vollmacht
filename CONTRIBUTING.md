@@ -12,6 +12,12 @@ Record the reviewed commit or tree, reviewer identity, scope, findings with seve
 
 Before handoff, the PR description links the review report and identifies the exact reviewed revision. Required tests must pass. Do not claim that a passing test suite or review guarantees freedom from bugs.
 
+## Coordinated delivery
+
+Independent tasks may run in parallel with explicit file ownership. Keep separate PRs for coherent changes; do not implement dependent protocol code against an unfrozen contract. A coordinator integrates changes and obtains a separate adversarial review for each PR.
+
+The maintainer has authorized automatic merging of in-plan PRs after review findings are resolved and all required checks pass on the exact head revision. Pause for clarification, material plan deviations, new permissions or user-assisted hardware work. Automatic merging does not waive these gates or authorize live GitHub demo operations, credential changes or Keychain mutations. If branch protections or another required review block merging, report the blocker rather than bypassing it.
+
 ## Implementation conventions
 
 Use small Rust modules with explicit trust boundaries and typed errors. Keep cryptography behind maintained libraries; never implement primitives. Prefer a minimal dependency graph. Document any unsafe Rust or native FFI and isolate it behind a narrow interface.
