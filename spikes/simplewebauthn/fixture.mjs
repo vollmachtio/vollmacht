@@ -35,10 +35,10 @@ export function authenticator() {
     assert(challenge, overrides = {}) {
       const {
         origin = ORIGIN, rpID = RP_ID, flags = 5, type = 'webauthn.get',
-        crossOrigin = false, pretty = false, counter = 0,
+        crossOrigin = false, topOrigin, pretty = false, counter = 0,
       } = overrides;
       const clientData = Buffer.from(JSON.stringify(
-        { type, challenge, origin, crossOrigin }, null, pretty ? 2 : undefined,
+        { type, challenge, origin, crossOrigin, ...(topOrigin === undefined ? {} : { topOrigin }) }, null, pretty ? 2 : undefined,
       ));
       const authData = Buffer.alloc(37);
       createHash('sha256').update(rpID).digest().copy(authData);

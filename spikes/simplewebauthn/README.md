@@ -51,3 +51,22 @@ A production helper would introduce a second runtime, npm supply-chain maintenan
 ## Recommendation and next gate
 
 The completed user-reported P03d functional matrix supports continuing the [helper trust-boundary and packaging assessment](../../docs/helper-assessment.md), not production adoption. Environment versions and cleanup were confirmed on 2026-09-29; observation limits remain documented in the matrix. Compare a narrow helper against its packaging costs in P06. Do not downgrade to issuer-only approval or migrate the Rust core on the basis of this result alone.
+
+## P03e.3 private assertion helper
+
+`helper.mjs` is a separate one-shot, private-pipe entry point. It does not run the browser server or create a challenge. Rust supplies the expected challenge and trusted credential snapshot; the helper verifies original assertion bytes with the existing pinned SimpleWebAuthn dependency. It restricts keys to ES256/P-256, requires UP and UV, checks both credential IDs and any supplied user handle, rejects cross-origin/top-origin data and changed backup eligibility, and reports only fixed result codes. Rust retains final deadline, registry revision, counter and single-use checks. An absent user handle is allowed for a non-discoverable assertion; a supplied handle must match.
+
+`helper-protocol.mjs` implements the experimental assertion envelope, not WebAuthn cryptography. It rejects duplicate keys before normalization, noncanonical binary encodings, unknown fields, invalid integer lexemes, excess depth and size, and anything except one complete frame followed by EOF. This deliberate JSON subset mirrors the Rust schema. Malformed requests exit without reflecting unvalidated identifiers; invalid evidence in a valid request returns a correlated rejection. The Rust supervisor bounds process lifetime and both output streams.
+
+Run the integrated synthetic path from the repository root after `npm ci` in this directory:
+
+```sh
+cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --locked
+VOLLMACHT_TEST_DRIVER="$PWD/target/debug/examples/real-helper" \
+VOLLMACHT_TEST_LAUNCHER="$PWD/target/debug/vollmacht-helper-launcher" \
+npm --prefix spikes/simplewebauthn run test:helper-e2e
+```
+
+The `real-helper` example is exclusively a test driver, not a CLI or enrollment API. It generates fresh randomness and hashes the experimental domain, nonce and fixed simulated operation in Rust. The Node test fixture independently signs the resulting challenge with a software key, sends fixture enrollment/evidence to Rust, and Rust invokes Node through the hardened launcher with private pipes and an empty environment. The driver rejects attempts to overwrite its challenge or request ID. Tests cover valid signatures, synced-credential flags, original-byte preservation, wrong expectations and tampered evidence, plus repeat attempts on the same coordinator. Synthetic UP/UV bits are not evidence of a human or platform authenticator.
+
+The fixture input intentionally supplies its own trusted public key: do not expose the driver to agents or treat it as authorized enrollment. Restart/fresh-coordinator replay protection, durable enrollment/revocation, binding to a real agent or execution, packaging integrity and a production mandate schema remain absent. No issuer keys or GitHub tokens enter this experiment. A malicious helper can still lie about verification; process separation does not remove it from the trusted computing base. See [assessment](../../docs/helper-assessment.md) and [protocol](../helper-protocol/README.md).
