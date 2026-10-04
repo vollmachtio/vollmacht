@@ -24,4 +24,12 @@ Source review additionally found self-recursive equality in `PartialEq for Box<d
 
 From repository root, run `python3 scripts/check-jose.py` for formatting, strict Clippy and locked tests. `scripts/check.py` invokes this isolated crate explicitly on both CI platforms; ordinary Cargo workspace tests alone do not include it. `python3 scripts/dependencies.py` audits all three graphs with the repository policy, including this standalone lockfile.
 
+## Deterministic scalar and encoding vectors
+
+Four additional tests exercise literal DER encodings of small synthetic r/s values, fixed-width raw64 zero padding, high-bit DER sign padding, malformed/truncated/nonminimal DER, trailing-data detection, scalars wider than 32 bytes, and zero/order/out-of-range scalars. Encoding a pair successfully does not establish a valid ECDSA signature. OpenSSL's DER decoder accepts trailing bytes after a valid object, so decode success alone is not a strict encoding check; a future adapter must enforce exact consumption/canonical encoding and scalar validity.
+
+The public P-256 SHA-256 `sample` vector from RFC 6979 Appendix A.2.5 supplies deterministic verification data. The tests use only its public coordinates and signature, not its private key or deterministic signing algorithm. These raw ES256 verifier vectors are not compact JWS tokens. [RFC 6979 public test vector](https://www.rfc-editor.org/rfc/rfc6979#appendix-A.2.5)
+
+Both the original signature and the version with s replaced by the curve order minus s verify through josekit and direct OpenSSL. This demonstrates signature malleability, not a forgery of a different message: changing the message still fails. No low-S enforcement is observed on this path or selected for production. Replay prevention must bind trusted mandate identity/nonce and atomic consumption state, not signature bytes or their hash; DER canonicality alone does not make signatures unique. Both verification paths use OpenSSL and do not establish independent-provider agreement.
+
 Sources: [josekit 0.10.3 API](https://docs.rs/josekit/0.10.3/josekit/), [RFC 7515 JWS](https://www.rfc-editor.org/rfc/rfc7515), [RFC 7518 ES256](https://www.rfc-editor.org/rfc/rfc7518).
