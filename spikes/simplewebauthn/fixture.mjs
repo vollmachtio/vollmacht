@@ -35,11 +35,15 @@ export function authenticator() {
     assert(challenge, overrides = {}) {
       const {
         origin = ORIGIN, rpID = RP_ID, flags = 5, type = 'webauthn.get',
-        crossOrigin = false, topOrigin, pretty = false, counter = 0,
+        crossOrigin = false, topOrigin, pretty = false, counter = 0, rawClientData,
       } = overrides;
-      const clientData = Buffer.from(JSON.stringify(
+      // Test-only byte injection signs exactly these bytes, including malformed JSON.
+      if (rawClientData !== undefined && (!Buffer.isBuffer(rawClientData) || rawClientData.length > 12_288)) {
+        throw new Error('invalid_test_client_data');
+      }
+      const clientData = rawClientData === undefined ? Buffer.from(JSON.stringify(
         { type, challenge, origin, crossOrigin, ...(topOrigin === undefined ? {} : { topOrigin }) }, null, pretty ? 2 : undefined,
-      ));
+      )) : Buffer.from(rawClientData);
       const authData = Buffer.alloc(37);
       createHash('sha256').update(rpID).digest().copy(authData);
       authData[32] = flags;
