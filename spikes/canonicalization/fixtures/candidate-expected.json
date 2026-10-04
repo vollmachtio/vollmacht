@@ -1,0 +1,7 @@
+{
+  "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"22222222222222222222222222222222\",\"credential_id\":\"AQIDBA\",\"display\":{\"repository\":\"vollmacht-disposable/example\",\"version\":1},\"expires_at\":1800000120,\"issued_at\":1800000000,\"issuer_id\":\"11111111111111111111111111111111\",\"mandate_id\":\"55555555555555555555555555555555\",\"nonce\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"operation\":{\"action\":\"github.pull_request.merge\",\"constraints\":{\"base_ref\":\"main\",\"expected_head_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"merge_method\":\"squash\"},\"resource\":{\"host\":\"github.com\",\"pull_request_number\":42,\"repository_id\":\"12345\"}},\"policy_revision\":1,\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+  "canonical_operation": "{\"action\":\"github.pull_request.merge\",\"constraints\":{\"base_ref\":\"main\",\"expected_head_sha\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"merge_method\":\"squash\"},\"resource\":{\"host\":\"github.com\",\"pull_request_number\":42,\"repository_id\":\"12345\"}}",
+  "mandate_digest_hex": "80dc2d95a3b5c7d0cc07df0a4334197d58a1321144ac3e97d716342d38f151e9",
+  "mandate_challenge": "gNwtlaO1x9DMB98KQzQZfVihMhFErD6X1xY0LTjxUek",
+  "operation_digest_hex": "9b9d86414abe7f76d81f2836f2d86979ad6f21d3ee77b1ed31ec7e345052a14f"
+}

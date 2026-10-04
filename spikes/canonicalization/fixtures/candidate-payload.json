@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "mandate_id": "55555555555555555555555555555555",
+  "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "issuer_id": "11111111111111111111111111111111",
+  "audience": "22222222222222222222222222222222",
+  "principal_id": "33333333333333333333333333333333",
+  "credential_id": "AQIDBA",
+  "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+  "policy_revision": 1,
+  "issued_at": 1800000000,
+  "expires_at": 1800000120,
+  "operation": {
+    "action": "github.pull_request.merge",
+    "resource": {
+      "host": "github.com",
+      "repository_id": "12345",
+      "pull_request_number": 42
+    },
+    "constraints": {
+      "expected_head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "base_ref": "main",
+      "merge_method": "squash"
+    }
+  },
+  "display": {
+    "version": 1,
+    "repository": "vollmacht-disposable/example"
+  }
+}
