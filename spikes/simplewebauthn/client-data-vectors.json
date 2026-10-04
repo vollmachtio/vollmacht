@@ -1,0 +1,149 @@
+{
+  "profile": "candidate-client-data-syntax-v1",
+  "vectors": [
+    {
+      "id": "minimal-object",
+      "raw_base64url": "e30",
+      "expected_gate": "accept",
+      "reason": "Empty object passes syntax only; required WebAuthn fields are not checked."
+    },
+    {
+      "id": "ordinary-client-data",
+      "raw_base64url": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiZml4dHVyZSIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODM3NCIsImNyb3NzT3JpZ2luIjpmYWxzZX0",
+      "expected_gate": "accept",
+      "reason": "Unique object members and ordinary JSON values."
+    },
+    {
+      "id": "duplicate-ascii",
+      "raw_base64url": "eyJjaGFsbGVuZ2UiOiJhIiwiY2hhbGxlbmdlIjoiYiJ9",
+      "expected_gate": "reject",
+      "reason": "Duplicate decoded member name."
+    },
+    {
+      "id": "duplicate-escaped",
+      "raw_base64url": "eyJjaGFsbGVuZ2UiOiJhIiwiXHUwMDYzaGFsbGVuZ2UiOiJiIn0",
+      "expected_gate": "reject",
+      "reason": "Escaped and literal member names decode identically."
+    },
+    {
+      "id": "duplicate-unicode",
+      "raw_base64url": "eyLDqSI6MSwiXHUwMGU5IjoyfQ",
+      "expected_gate": "reject",
+      "reason": "Non-ASCII decoded member names duplicate."
+    },
+    {
+      "id": "duplicate-nested-array",
+      "raw_base64url": "eyJmdXR1cmUiOlt7IngiOjEsIlx1MDA3OCI6Mn1dfQ",
+      "expected_gate": "reject",
+      "reason": "Duplicate member names inside an object nested in an array."
+    },
+    {
+      "id": "same-name-distinct-objects",
+      "raw_base64url": "eyJmdXR1cmUiOlt7IngiOjF9LHsieCI6Mn1dfQ",
+      "expected_gate": "accept",
+      "reason": "Duplicate detection is scoped to each object."
+    },
+    {
+      "id": "unicode-literal",
+      "raw_base64url": "eyJmdXR1cmUiOiJjYWbDqSDwn5iAIiwiw6kiOjF9",
+      "expected_gate": "accept",
+      "reason": "Valid UTF-8 strings and member names."
+    },
+    {
+      "id": "unicode-paired-surrogate",
+      "raw_base64url": "eyJmdXR1cmUiOiJcdWQ4M2RcdWRlMDAifQ",
+      "expected_gate": "accept",
+      "reason": "Paired escaped UTF-16 surrogates encode one Unicode scalar."
+    },
+    {
+      "id": "unicode-not-normalized",
+      "raw_base64url": "eyLDqSI6MSwiZcyBIjoyfQ",
+      "expected_gate": "accept",
+      "reason": "Distinct decoded strings remain distinct; no Unicode normalization."
+    },
+    {
+      "id": "lone-high-surrogate",
+      "raw_base64url": "eyJmdXR1cmUiOiJcdWQ4MDAifQ",
+      "expected_gate": "reject",
+      "reason": "Unpaired escaped high surrogate."
+    },
+    {
+      "id": "lone-low-surrogate-key",
+      "raw_base64url": "eyJcdWRjMDAiOjF9",
+      "expected_gate": "reject",
+      "reason": "Unpaired escaped low surrogate in a member name."
+    },
+    {
+      "id": "bom-prefix",
+      "raw_base64url": "77u_e30",
+      "expected_gate": "reject",
+      "reason": "Leading UTF-8 BOM is excluded by the candidate syntax profile."
+    },
+    {
+      "id": "general-json-values",
+      "raw_base64url": "eyJmdXR1cmUiOltudWxsLHRydWUsZmFsc2Use30sW10sMS4yNSwxZTIsLTAsLTEyLDBdfQ",
+      "expected_gate": "accept",
+      "reason": "Unknown fields and ordinary JSON values are syntax-valid."
+    },
+    {
+      "id": "large-exact-integer",
+      "raw_base64url": "eyJmdXR1cmUiOjkwMDcxOTkyNTQ3NDA5OTJ9",
+      "expected_gate": "accept",
+      "reason": "No mandate safe-integer constraint applies to this syntax-only corpus."
+    },
+    {
+      "id": "nonfinite-conversion",
+      "raw_base64url": "eyJmdXR1cmUiOjFlNDAwfQ",
+      "expected_gate": "reject",
+      "reason": "Restricted candidate number profile rejects overflow beyond finite f64."
+    },
+    {
+      "id": "top-level-array",
+      "raw_base64url": "W10",
+      "expected_gate": "reject",
+      "reason": "Client-data root must be an object."
+    },
+    {
+      "id": "top-level-null",
+      "raw_base64url": "bnVsbA",
+      "expected_gate": "reject",
+      "reason": "Client-data root must be an object."
+    },
+    {
+      "id": "trailing-json",
+      "raw_base64url": "e317fQ",
+      "expected_gate": "reject",
+      "reason": "Only one top-level JSON value is permitted."
+    },
+    {
+      "id": "trailing-whitespace",
+      "raw_base64url": "IA0Ke30JIA",
+      "expected_gate": "accept",
+      "reason": "JSON whitespace surrounding one object is allowed."
+    },
+    {
+      "id": "trailing-comma",
+      "raw_base64url": "eyJmdXR1cmUiOjEsfQ",
+      "expected_gate": "reject",
+      "reason": "Trailing comma is invalid JSON."
+    },
+    {
+      "id": "unescaped-control",
+      "raw_base64url": "eyJmdXR1cmUiOiIKIn0",
+      "expected_gate": "reject",
+      "reason": "Literal newline in a JSON string is invalid."
+    },
+    {
+      "id": "invalid-utf8-in-string",
+      "raw_base64url": "eyJmdXR1cmUiOiL_In0",
+      "expected_gate": "reject",
+      "reason": "Invalid UTF-8 byte inside a string."
+    },
+    {
+      "id": "overlong-utf8",
+      "raw_base64url": "eyJmdXR1cmUiOiLAryJ9",
+      "expected_gate": "reject",
+      "reason": "Overlong UTF-8 encoding is invalid."
+    }
+  ]
+}
