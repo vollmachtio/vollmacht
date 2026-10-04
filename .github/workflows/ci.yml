@@ -40,6 +40,8 @@ jobs:
         run: npm audit
       - name: Run synthetic challenge tests
         run: npm test
+      - name: Verify candidate signed envelope vectors
+        run: node envelope-vector-test.mjs
       - name: Build real-helper test driver with pinned Rust
         working-directory: .
         run: cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --release --locked
