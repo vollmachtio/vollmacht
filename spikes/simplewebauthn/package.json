@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=22" },
-  "scripts": { "test": "node check-lock.mjs && node test.mjs && node browser-test.mjs && node helper-test.mjs", "test:helper-e2e": "node helper-e2e.mjs", "browser": "node server.mjs" },
+  "scripts": { "test": "node check-lock.mjs && node test.mjs && node browser-test.mjs && node helper-test.mjs && node helper-recheck-test.mjs", "test:helper-e2e": "node helper-e2e.mjs", "browser": "node server.mjs" },
   "dependencies": { "@simplewebauthn/server": "14.0.2" }
 }
