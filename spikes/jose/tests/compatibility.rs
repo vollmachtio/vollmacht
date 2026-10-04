@@ -4,12 +4,12 @@ use josekit::{
     jws::{self, ES256, JwsAlgorithm, JwsHeader, JwsSigner},
 };
 use openssl::{
-    bn::BigNum,
+    bn::{BigNum, BigNumContext},
     ec::{EcGroup, EcKey},
     ecdsa::EcdsaSig,
     hash::MessageDigest,
     nid::Nid,
-    pkey::{PKey, Private},
+    pkey::{PKey, Private, Public},
     sha::sha256,
     sign::{Signer, Verifier},
 };
@@ -27,6 +27,158 @@ const PAYLOAD: &[u8] = br#"{"operation":"fixture-only"}"#;
 struct SoftwareSigner {
     key: PKey<Private>,
     seen: Arc<Mutex<Vec<u8>>>,
+}
+
+// Deterministic public test vector: RFC 6979 A.2.5, SHA-256, message "sample".
+// Only public coordinates and signature are used; no deterministic signer is added.
+fn rfc_public_and_signature() -> (PKey<Public>, Vec<u8>) {
+    let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+    let x =
+        BigNum::from_hex_str("60FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB6")
+            .unwrap();
+    let y =
+        BigNum::from_hex_str("7903FE1008B8BC99A41AE9E95628BC64F2F1B20C2D7E9F5177A3C294D4462299")
+            .unwrap();
+    let key = EcKey::from_public_key_affine_coordinates(&group, &x, &y).unwrap();
+    key.check_key().unwrap();
+    let r =
+        BigNum::from_hex_str("EFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF3716")
+            .unwrap();
+    let s =
+        BigNum::from_hex_str("F7CB1C942D657C41D436C7A1B6E29F65F3E900DBB9AFF4064DC4AB2F843ACDA8")
+            .unwrap();
+    (
+        PKey::from_ec_key(key).unwrap(),
+        [r.to_vec_padded(32).unwrap(), s.to_vec_padded(32).unwrap()].concat(),
+    )
+}
+
+#[test]
+fn fixed_scalar_encoding_vectors_preserve_padding_without_claiming_validity() {
+    // Synthetic scalar pairs exercise encoding only, not valid signatures.
+    for (r, s, expected_der) in [
+        (1, 128, vec![0x30, 7, 2, 1, 1, 2, 2, 0, 128]),
+        (128, 1, vec![0x30, 7, 2, 2, 0, 128, 2, 1, 1]),
+        (1, 1, vec![0x30, 6, 2, 1, 1, 2, 1, 1]),
+    ] {
+        let signature = EcdsaSig::from_private_components(
+            BigNum::from_u32(r).unwrap(),
+            BigNum::from_u32(s).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(signature.to_der().unwrap(), expected_der);
+        let parsed = EcdsaSig::from_der(&expected_der).unwrap();
+        let raw = [
+            parsed.r().to_vec_padded(32).unwrap(),
+            parsed.s().to_vec_padded(32).unwrap(),
+        ]
+        .concat();
+        let mut expected_raw = [0_u8; 64];
+        expected_raw[31] = u8::try_from(r).unwrap();
+        expected_raw[63] = u8::try_from(s).unwrap();
+        assert_eq!(raw, expected_raw);
+    }
+}
+
+#[test]
+fn malformed_der_cannot_be_trusted_by_decode_success_alone() {
+    let minimal = [0x30, 6, 2, 1, 1, 2, 1, 1];
+    let trailing = [minimal.as_slice(), &[0]].concat();
+    // The maintained decoder accepts a prefix. Exact re-encoding detects trailing data.
+    assert_eq!(
+        EcdsaSig::from_der(&trailing).unwrap().to_der().unwrap(),
+        minimal
+    );
+    assert_ne!(
+        EcdsaSig::from_der(&trailing).unwrap().to_der().unwrap(),
+        trailing
+    );
+    for bad in [
+        vec![],
+        vec![0x30, 6, 2, 1, 1],
+        vec![0x30, 3, 2, 1, 1],
+        vec![0x30, 7, 2, 2, 0, 1, 2, 1, 1],
+        vec![0x30, 6, 2, 1, 0xff, 2, 1, 1],
+    ] {
+        // No permissive decode result may establish canonical positive scalars.
+        if let Ok(parsed) = EcdsaSig::from_der(&bad) {
+            assert!(
+                parsed.r().is_negative()
+                    || parsed.s().is_negative()
+                    || parsed.to_der().unwrap() != bad
+            );
+        }
+    }
+    let too_wide = BigNum::from_hex_str(
+        "01000000000000000000000000000000000000000000000000000000000000000000",
+    )
+    .unwrap();
+    assert!(too_wide.to_vec_padded(32).is_err());
+}
+
+#[test]
+fn deterministic_scalar_boundaries_fail_verification() {
+    use josekit::jws::JwsVerifier;
+    let (public, valid) = rfc_public_and_signature();
+    let verifier = ES256
+        .verifier_from_pem(public.public_key_to_pem().unwrap())
+        .unwrap();
+    verifier.verify(b"sample", &valid).unwrap();
+    let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+    let mut order = BigNum::new().unwrap();
+    group
+        .order(&mut order, &mut BigNumContext::new().unwrap())
+        .unwrap();
+    let mut beyond = order.to_owned().unwrap();
+    beyond.add_word(1).unwrap();
+    for scalar in [
+        vec![0; 32],
+        order.to_vec_padded(32).unwrap(),
+        beyond.to_vec_padded(32).unwrap(),
+        vec![255; 32],
+    ] {
+        for offset in [0, 32] {
+            let mut invalid = valid.clone();
+            invalid[offset..offset + 32].copy_from_slice(&scalar);
+            assert!(verifier.verify(b"sample", &invalid).is_err());
+        }
+    }
+}
+
+#[test]
+fn deterministic_high_and_low_s_signatures_both_verify() {
+    use josekit::jws::JwsVerifier;
+    let (public, original) = rfc_public_and_signature();
+    let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
+    let mut order = BigNum::new().unwrap();
+    group
+        .order(&mut order, &mut BigNumContext::new().unwrap())
+        .unwrap();
+    let s = BigNum::from_slice(&original[32..]).unwrap();
+    let mut alternate_s = BigNum::new().unwrap();
+    alternate_s.checked_sub(&order, &s).unwrap();
+    let mut alternate = original.clone();
+    alternate[32..].copy_from_slice(&alternate_s.to_vec_padded(32).unwrap());
+    assert_ne!(original, alternate);
+    let verifier = ES256
+        .verifier_from_pem(public.public_key_to_pem().unwrap())
+        .unwrap();
+    for raw in [&original, &alternate] {
+        verifier.verify(b"sample", raw).unwrap();
+        let der = EcdsaSig::from_private_components(
+            BigNum::from_slice(&raw[..32]).unwrap(),
+            BigNum::from_slice(&raw[32..]).unwrap(),
+        )
+        .unwrap()
+        .to_der()
+        .unwrap();
+        let mut direct = Verifier::new(MessageDigest::sha256(), &public).unwrap();
+        direct.update(b"sample").unwrap();
+        assert!(direct.verify(&der).unwrap());
+        assert!(verifier.verify(b"changed", raw).is_err());
+    }
+    // These are raw ES256 verifier vectors, not compact JWS tokens. Different
+    // signature bytes cannot be a reliable single-use/replay identity.
 }
 
 impl fmt::Debug for SoftwareSigner {
