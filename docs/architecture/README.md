@@ -2,7 +2,7 @@
 
 Status: **PROPOSED**, 2026-10-01. This package prepares P06 in parallel with P04b. It does not accept an ADR, freeze a protocol, complete P04/P06, or authorize P07 implementation. Existing experiments remain experiments. Read the [design baseline](../design-baseline.md), [helper assessment](../helper-assessment.md) and [candidate contract](mandate-contract.md) together.
 
-Follow-up proposals cover [trusted enrollment and recovery](enrollment.md) and [GitHub merge preconditions](github-preconditions.md). They record unresolved acceptance gates, not completed implementation.
+Follow-up proposals cover [trusted enrollment and recovery](enrollment.md) and [GitHub merge preconditions](github-preconditions.md). The maintainer accepted the limited disposable-repository no-retargeting assumption for the first live demo on 2026-10-03; its safeguards remain unimplemented. This does not accept P06 or waive the remaining gates.
 
 ## ADR candidate 1: ownership and evidence
 
