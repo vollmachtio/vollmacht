@@ -1,6 +1,6 @@
 # Candidate signed client-data syntax validation
 
-Assessment only, 2026-10-03. The implementation lives under `tests/support/client_data.rs`, is compiled only into integration tests, and is not called by the helper transport, browser server or Node verifier. It does not close the P06 ambiguity-policy gate or harden current runtime behavior.
+Assessment only, 2026-10-03. The implementation lives under `tests/support/client_data.rs`, is compiled into integration tests and the explicit `client-data-gate` test example, and is not called by the helper transport, browser server or Node verifier. It does not close the P06 ambiguity-policy gate or harden current runtime behavior.
 
 The [signed characterization](../simplewebauthn/CLIENT-DATA.md) found that the current helper accepts some correctly signed ambiguous JSON. This experiment assesses a separate prevalidation step using the existing pinned serde/serde_json parser rather than writing a JSON tokenizer or loosening the outer IPC decoder.
 
@@ -21,3 +21,5 @@ Neither assertion nor registration paths are integrated with this validator. Ado
 ## Validation
 
 Run `cargo test -p vollmacht-helper-probe` or the full repository check script. Tests consume the [24 shared unsigned vectors](../simplewebauthn/CLIENT-DATA-VECTORS.md) and exercise exact byte/depth limits, nested duplicates and valid data beyond the narrower IPC profile. Workspace CI discovers the integration tests automatically. These are selected regression cases, not exhaustive fuzzing or evidence of cryptographic verification.
+
+The [cross-runtime harness](../simplewebauthn/CLIENT-DATA-GATE.md) additionally passes original bytes through the Rust test example before exercising the actual Node verification function with synthetic signatures. It establishes a possible sequencing boundary, not integration into a live ingestion path.

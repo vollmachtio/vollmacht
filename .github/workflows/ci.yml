@@ -42,12 +42,18 @@ jobs:
         run: npm test
       - name: Build real-helper test driver with pinned Rust
         working-directory: .
-        run: cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --release --locked
+        run: |
+          cargo build -p vollmacht-helper-launcher --bin vollmacht-helper-launcher --example real-helper --release --locked
+          cargo build -p vollmacht-helper-probe --example client-data-gate --release --locked
       - name: Exercise real verifier through Rust and native launcher
         run: npm run test:helper-e2e
         env:
           VOLLMACHT_TEST_DRIVER: ${{ github.workspace }}/target/release/examples/real-helper
           VOLLMACHT_TEST_LAUNCHER: ${{ github.workspace }}/target/release/vollmacht-helper-launcher
+      - name: Assess client-data gate with original signed bytes
+        run: npm run test:client-data-gate
+        env:
+          VOLLMACHT_CLIENT_DATA_GATE: ${{ github.workspace }}/target/release/examples/client-data-gate
       - name: Report developer preflight, inventory and process latency
         run: python3 ../helper-protocol/dev.py measure "$(command -v node)" "$VOLLMACHT_TEST_LAUNCHER" "$VOLLMACHT_TEST_DRIVER"
         env:
