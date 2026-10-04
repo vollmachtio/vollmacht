@@ -18,6 +18,8 @@ P03e.2c adds an explicit `Launch.launcher` path and an exec-only native boundary
 
 ## Security boundary
 
+The separate [client-data syntax assessment](CLIENT-DATA.md) is test-only. It does not change this transport or the real helper's current verification behavior.
+
 Rust owns the immutable operation, random nonce and challenge, credential selection, expiry and single-use state. Node performs complete WebAuthn verification using the existing reviewed library wrapper, with expectations supplied by Rust. The helper is trusted verification code: correlation prevents mix-ups, not a dishonest helper returning success. Private pipes are not isolation from same-user malware.
 
 Rust retains the original evidence and operation in its pending record. The helper receives neither issuer keys nor GitHub credentials and never decides policy or performs an action. This experiment returns only a verification result. Agent proof, policy, durable reservation, registry revocation and issuer signing remain separate production gates.
