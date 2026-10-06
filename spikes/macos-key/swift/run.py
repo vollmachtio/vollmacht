@@ -1,4 +1,4 @@
-"""Compile and run the no-persistence Swift assessment on macOS (Python 3.11+)."""
+"""Compile Swift experiments and run fake-only tests on macOS (Python 3.11+)."""
 
 from pathlib import Path
 import subprocess
@@ -28,6 +28,21 @@ def main():
             "-o", str(executable),
         ], timeout=180)
         run([str(executable)], timeout=15)
+        runtime_tests = directory / "runtime-tests"
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "Profile.swift"), str(source / "Runtime.swift"),
+            str(source / "RuntimeTests.swift"), "-o", str(runtime_tests),
+        ], timeout=180)
+        run([str(runtime_tests)], timeout=15)
+        # Check the manual UI without launching it or accessing Keychain.
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors", "-typecheck",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "Profile.swift"), str(source / "Runtime.swift"),
+            str(source / "ProbeView.swift"),
+        ], timeout=180)
 
 
 if __name__ == "__main__":
