@@ -87,6 +87,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/canonicalization/tests/candidate_agent.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/canonicalization/tests/candidate_envelope.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -207,6 +212,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/jose/tests/candidate_agent.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/jose/tests/candidate_envelope.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -304,6 +314,11 @@
     {
       "path": "spikes/simplewebauthn/client-data-test.mjs",
       "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/agent-vector-generator.mjs",
+      "role": "fixture_generator",
       "measurement": "unmeasured"
     },
     {
