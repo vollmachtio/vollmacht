@@ -40,6 +40,8 @@ jobs:
         run: npm audit
       - name: Run synthetic challenge tests
         run: npm test
+      - name: Verify candidate signed envelope vectors
+        run: node envelope-vector-test.mjs
       - name: Build real-helper test driver with pinned Rust
         working-directory: .
         run: |
@@ -84,6 +86,17 @@ jobs:
       - name: Check compile-only Apple key profiles
         if: runner.os == 'macOS'
         run: python3 spikes/macos-key/swift/run.py
+      - name: Collect fake-only Swift coverage
+        if: runner.os == 'macOS'
+        run: python3 scripts/coverage_swift.py "$RUNNER_TEMP/vollmacht-swift-coverage"
+      - name: Retain Swift coverage evidence
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: swift-coverage
+          path: ${{ runner.temp }}/vollmacht-swift-coverage/*.json
+          if-no-files-found: error
+          retention-days: 14
   dependencies:
     name: dependencies
     runs-on: ubuntu-24.04
