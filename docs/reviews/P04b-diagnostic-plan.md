@@ -35,3 +35,9 @@ The runner adds a third fake executable compiled only from the two diagnostic fi
 | `spikes/macos-key/swift/run.py` | `c82d1fd247429c26b961d051141eab28c56b5081989714ae1c8690bd552a3d86` |
 | `spikes/macos-key/swift/test_run.py` | `165183f60bafb1050cfb08e26b64195cddaa8dbab697ed075fd13534e20d38bb` |
 | `coverage/sources.json` | `3871a94c198fed9e72578bec86a24c9d3d090bcc13d9451d7a2c0d56f9ce0916` |
+
+## Final main integration
+
+After integration with main `fa76dd6`, all five diagnostic/model/runner source hashes above remain unchanged. The inventory now retains main's two Python Swift-normalization entries and adds only the two reviewed diagnostic files relative to that base. The reviewer independently reran the inventory CLI: 85 indexed sources accounted for, with 80 unmeasured, four raw Swift fake-test sources and one attribution-only source. No integration blocker or classification weakening was found. Runtime tests were not repeated for this inventory-only follow-up.
+
+Final integrated `coverage/sources.json` SHA-256: `01077661a9f52d2b9edfe37afe1cb8b755351bb4433ec76e9f0a59965e4a8835`.
