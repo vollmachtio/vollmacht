@@ -232,21 +232,48 @@ fn disabled_registry_and_bad_launcher_do_not_execute() {
 }
 
 #[test]
-fn maximum_request_to_nonreading_child_is_bounded_and_can_also_roundtrip() {
-    for mode in ["no-read", "success"] {
-        let temp = Sandbox::new();
-        let c = Coordinator::new(
-            request_sized(0, true),
-            Instant::now() + Duration::from_millis(400),
-        );
-        let result = c.verify(temp.launch(mode));
-        if mode == "no-read" {
-            assert_eq!(result, Err(Failure::DeadlineExceeded));
-        } else {
-            assert!(result.is_ok());
-        }
-        temp.reaped();
-    }
+fn maximum_request_to_nonreading_child_is_bounded_and_consumed() {
+    let temp = Sandbox::new();
+    let c = Coordinator::new(
+        request_sized(0, true),
+        Instant::now() + Duration::from_millis(400),
+    );
+    let start = Instant::now();
+    assert_eq!(
+        c.verify(temp.launch("no-read")),
+        Err(Failure::DeadlineExceeded)
+    );
+    assert!(start.elapsed() < Duration::from_secs(3));
+    assert_eq!(c.counter(), 0);
+    assert_eq!(
+        c.verify(temp.launch("success")),
+        Err(Failure::CeremonyUnavailable)
+    );
+    temp.reaped();
+}
+
+#[test]
+fn maximum_request_success_roundtrip_commits_once() {
+    let temp = Sandbox::new();
+    // Use the normal success budget; the separate stalled-child test above
+    // retains the short security deadline. This is not a latency benchmark.
+    let c = Coordinator::new(
+        request_sized(0, true),
+        Instant::now() + Duration::from_secs(5),
+    );
+    let result = c
+        .verify(temp.launch("success"))
+        .expect("maximum request must roundtrip within the normal success budget");
+    assert_eq!(result.new_counter, 1);
+    assert!(!result.backup_eligible);
+    assert!(!result.backed_up);
+    assert_eq!(c.counter(), 1);
+    assert_eq!(
+        c.verify(temp.launch("success")),
+        Err(Failure::CeremonyUnavailable)
+    );
+    assert_eq!(c.counter(), 1);
+    temp.reaped();
 }
 
 #[test]
