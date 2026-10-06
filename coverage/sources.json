@@ -47,6 +47,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "scripts/normalize_swift_coverage.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "scripts/test_browser_coverage.py",
       "role": "developer_tool",
       "measurement": "unmeasured"
@@ -68,6 +73,11 @@
     },
     {
       "path": "scripts/test_coverage_swift.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_normalize_swift_coverage.py",
       "role": "test",
       "measurement": "unmeasured"
     },
