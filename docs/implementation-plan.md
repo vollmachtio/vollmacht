@@ -2,6 +2,8 @@
 
 Implementation proceeds through small PRs. Tasks are sequential unless explicitly independent. Every row requires the adversarial review process in CONTRIBUTING.md. A checked task means its acceptance criteria were verified, not merely that files were created.
 
+The [v0.1 release goals](release-v0.1.md) define the first-release scope, non-goals and evidence required before tagging. Task IDs below are planning identifiers, not GitHub PR numbers.
+
 ## First ten PRs
 
 | ID | Scope and likely files | Acceptance and validation | Depends on |
