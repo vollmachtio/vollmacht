@@ -36,6 +36,14 @@ def main():
             str(source / "RuntimeTests.swift"), "-o", str(runtime_tests),
         ], timeout=180)
         run([str(runtime_tests)], timeout=15)
+        diagnostic_tests = directory / "diagnostic-plan-tests"
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "DiagnosticPlan.swift"),
+            str(source / "DiagnosticPlanTests.swift"), "-o", str(diagnostic_tests),
+        ], timeout=180)
+        run([str(diagnostic_tests)], timeout=15)
         # Check the manual UI without launching it or accessing Keychain.
         run([
             "/usr/bin/swiftc", "-warnings-as-errors", "-typecheck",
