@@ -1,0 +1,410 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "path": "crates/cli/src/main.rs",
+      "role": "cli_scaffold",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/cli/tests/cli.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/check-canonicalization.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/check-jose.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/check.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/coverage_compare.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/coverage_inventory.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/coverage_swift.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/dependencies.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_browser_coverage.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_browser_coverage_checks.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_coverage_compare.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_coverage_inventory.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_coverage_swift.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/canonicalization/src/lib.rs",
+      "role": "documentation_only",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/canonicalization/tests/candidate_envelope.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/canonicalization/tests/candidate_payload.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/canonicalization/tests/vectors.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/examples/real-helper.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/src/main.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/src/native.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/tests/descriptors.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/tests/fixtures/descriptor-probe.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-launcher/tests/lifecycle.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/dev.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/dev_test.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/examples/client-data-gate.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/frame.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/json.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/lib.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/lifecycle.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/message.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/src/process.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/tests/client_data.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/tests/codec.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/tests/fixtures/fake-helper.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/tests/support/client_data.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/helper-protocol/tests/time_window.rs",
+      "role": "assessment_model",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/jose/src/lib.rs",
+      "role": "documentation_only",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/jose/tests/candidate_envelope.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/jose/tests/compatibility.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/src/durable.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/src/lib.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/src/main.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/ProbeView.swift",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/Profile.swift",
+      "role": "experiment",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/Runtime.swift",
+      "role": "experiment",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/RuntimeTests.swift",
+      "role": "test",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/Tests.swift",
+      "role": "test",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/run.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/test_run.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/tests/durable.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/tests/probe.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/browser-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/check-lock.mjs",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/client-data-gate-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/client-data-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/envelope-vector-generator.mjs",
+      "role": "fixture_generator",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/envelope-vector-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/fixture.mjs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-e2e.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-fixture.mjs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-measure.mjs",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-protocol.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-recheck-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-runner.mjs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/helper.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/probe.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/server.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/session.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/src/ceremony.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/src/http.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/src/lib.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/src/main.rs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/tests/browser.cjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/tests/compatibility.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/tests/http.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/tests/lifecycle.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/webauthn/web/app.js",
+      "role": "experiment",
+      "measurement": "attribution_only"
+    }
+  ]
+}
