@@ -26,11 +26,13 @@ def fixture():
         "files": files, "functions": [{"name": "$sNativeKeyBackend.reserve", "count": 0,
                                         "filenames": [ROOT + "/" + adapter.PREFIX + "Runtime.swift"]}],
     }]}
-    metadata = {"schema": 1,
+    metadata = {"schema": 2,
                 "tools": {name: "/tools/" + name for name in ("swiftc", "llvm-profdata", "llvm-cov")},
                 "versions": {"swiftc": "Apple Swift 6.3.3\nTarget: arm64-apple-macosx26.0",
                              "llvm-profdata": "Apple LLVM 21.0.0", "llvm-cov": "Apple LLVM 21.0.0"},
-                "sdk": "/tools/MacOSX.sdk", "measured_suites": ["Tests.swift", "RuntimeTests.swift"],
+                "sdk": {"name": "macosx", "path": "/tools/MacOSX.sdk", "version": "26.5", "build": "25F70"},
+                "collector_config": adapter.configuration("arm64-apple-macosx26.0"),
+                "measured_suites": ["Tests.swift", "RuntimeTests.swift"],
                 "native_backend": "unexecuted", "limits": "collection only",
                 "unmeasured": {key: "manual gate" for key in ("ProbeView.swift", "native_keychain", "touch_id")}}
     return report, metadata
@@ -84,12 +86,40 @@ class NormalizeTests(unittest.TestCase):
         report, metadata = fixture()
         baseline = adapter.normalize(report, metadata, ROOT)
         metadata["tools"]["swiftc"] = "/other/tool/swiftc"
+        metadata["sdk"]["path"] = "/other/sdk/MacOSX.sdk"
         self.assertEqual(baseline["tool"], adapter.normalize(report, metadata, ROOT)["tool"])
         metadata["versions"]["llvm-cov"] = "Apple LLVM 22.0.0"
         changed = adapter.normalize(report, metadata, ROOT)
         with self.assertRaises(compare.InvalidReport): compare.compare(baseline, changed, adapter.SOURCES, adapter.SOURCES)
         del metadata["unmeasured"]["ProbeView.swift"]
         with self.assertRaises(compare.InvalidReport): adapter.normalize(report, metadata, ROOT)
+
+    def test_sdk_identity_changes_and_old_metadata_rejected(self):
+        report, metadata = fixture()
+        baseline = adapter.normalize(report, metadata, ROOT)
+        for key, value in (("build", "25F71"), ("version", "26.6")):
+            with self.subTest(key=key):
+                changed = copy.deepcopy(metadata)
+                changed["sdk"][key] = value
+                normalized = adapter.normalize(report, changed, ROOT)
+                with self.assertRaises(compare.InvalidReport):
+                    compare.compare(baseline, normalized, adapter.SOURCES, adapter.SOURCES)
+        for mutation in ("schema", "missing-sdk-build", "empty-sdk-build", "flags", "target", "suites", "merge", "export"):
+            with self.subTest(mutation=mutation):
+                changed = copy.deepcopy(metadata)
+                if mutation == "schema":
+                    changed["schema"] = 1
+                elif mutation == "missing-sdk-build":
+                    del changed["sdk"]["build"]
+                elif mutation == "empty-sdk-build":
+                    changed["sdk"]["build"] = ""
+                elif mutation == "flags":
+                    changed["collector_config"]["compile_flags"][1] = "-O"
+                elif mutation == "suites":
+                    changed["collector_config"]["suites"].pop()
+                else:
+                    changed["collector_config"][mutation] = "different"
+                with self.assertRaises(compare.InvalidReport): adapter.normalize(report, changed, ROOT)
 
     def test_bad_roots(self):
         for root in ("relative", "/", "/trusted//repository", "/trusted/../repository"):
