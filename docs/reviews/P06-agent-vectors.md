@@ -31,3 +31,15 @@ SHA-256 of reviewed working-tree files:
 9042cce52ba96d5646d62bf1dd6dbf5c03849297d7ee9061c681145fac532f1e  spikes/canonicalization/tests/candidate_agent.rs
 3fc939e227081816b067216788b19cb1a38f8664f79cf55542ac33197dd3146f  spikes/jose/tests/candidate_agent.rs
 ```
+
+## Source-inventory integration follow-up
+
+Independently reviewed the classification-only addition after merging the source-inventory prerequisite. Both `candidate_agent.rs` files are correctly classified as tests, and `agent-vector-generator.mjs` as a fixture generator. All three remain unmeasured; no coverage or production guarantee is added. No existing classification is removed or changed. No blockers found.
+
+The reviewer independently reran the real inventory CLI and all nine inventory unit tests: all passed, with 84 indexed sources accounted for. This follow-up does not rerun the agent cryptographic tests or replace exact-head CI.
+
+Reviewed SHA-256:
+
+```text
+31316864893bb486a732e765ffb39d46a297a7aa68583bae27aafcae7409d461  coverage/sources.json
+```
