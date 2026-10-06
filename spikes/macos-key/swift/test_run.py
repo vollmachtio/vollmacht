@@ -49,6 +49,21 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(len(observed), 1)
         self.assertFalse(observed[0].exists())
 
+    def test_only_fake_binaries_execute_and_ui_is_typechecked(self):
+        with patch.object(sys, "platform", "darwin"), patch.object(sys, "argv", ["run.py"]), patch.object(run, "run") as execute:
+            run.main()
+        calls = execute.call_args_list
+        self.assertEqual(len(calls), 5)
+        for index in (0, 2, 4):
+            self.assertEqual(calls[index].args[0][0], "/usr/bin/swiftc")
+            self.assertEqual(calls[index].kwargs["timeout"], 180)
+        for index, name in ((1, "profile-tests"), (3, "runtime-tests")):
+            self.assertEqual(len(calls[index].args[0]), 1)
+            self.assertEqual(Path(calls[index].args[0][0]).name, name)
+            self.assertEqual(calls[index].kwargs["timeout"], 15)
+        self.assertIn("-typecheck", calls[4].args[0])
+        self.assertEqual(Path(calls[4].args[0][-1]).name, "ProbeView.swift")
+
 
 if __name__ == "__main__":
     unittest.main()

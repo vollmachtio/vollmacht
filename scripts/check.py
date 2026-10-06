@@ -1,6 +1,7 @@
 """Run the same toolchain and Cargo checks locally and in CI (Python 3.11+)."""
 
 from pathlib import Path
+import shutil
 import subprocess
 import tomllib
 
@@ -28,7 +29,9 @@ def main():
         ["python3", "spikes/macos-key/swift/test_run.py"],
         ["python3", "scripts/check-canonicalization.py"],
         ["python3", "scripts/check-jose.py"],
-        ["node", "spikes/webauthn/tests/browser.cjs"],
+        ["python3", "scripts/test_browser_coverage_checks.py"],
+        ["python3", "scripts/test_coverage_swift.py"],
+        ["python3", "scripts/test_browser_coverage.py", shutil.which("node") or "node"],
         ["cargo", "fmt", option + "all", option, option + "check"],
         ["cargo", "clippy", option + "workspace", option + "all-targets", option + "locked", option, "-D", "warnings"],
         ["cargo", "test", option + "workspace", option + "locked"],

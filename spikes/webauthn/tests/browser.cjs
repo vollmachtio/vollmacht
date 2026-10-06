@@ -2,8 +2,10 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
+const { resolve } = require("node:path");
 const vm = require("node:vm");
-const source = readFileSync(`${__dirname}/../web/app.js`, "utf8");
+const sourcePath = resolve(__dirname, "../web/app.js");
+const source = readFileSync(sourcePath, "utf8");
 const token = "a".repeat(64);
 const buffer = Uint8Array.of(251, 255, 0).buffer;
 const encoded = "-_8A";
@@ -42,7 +44,7 @@ function setup({ credentials, finish, rejection } = {}) {
         ...(body.operation === "register" ? { excludeCredentials: [{ id: encoded }] } : { allowCredentials: [{ id: encoded }] }),
       } } }) };
     },
-  });
+  }, { filename: sourcePath });
   elements.token.value = token;
   elements.unlock.click();
   return { elements, requests, calls };
