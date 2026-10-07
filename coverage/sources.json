@@ -367,6 +367,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/simplewebauthn/enrollment-assertion.test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/simplewebauthn/enrollment-vector-generator.mjs",
       "role": "fixture_generator",
       "measurement": "unmeasured"
