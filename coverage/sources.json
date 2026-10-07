@@ -457,6 +457,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/simplewebauthn/registration-binding.test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/simplewebauthn/server.mjs",
       "role": "experiment",
       "measurement": "unmeasured"
