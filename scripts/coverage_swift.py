@@ -3,9 +3,26 @@
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
+
+
+def compiler_target(version):
+    targets = re.findall(r"^Target: ([a-zA-Z0-9_.-]+)$", version, re.MULTILINE)
+    if len(targets) != 1 or not re.fullmatch(r"(?:arm64|x86_64)-apple-macosx[0-9]+(?:\.[0-9]+){0,2}", targets[0]):
+        raise ValueError("missing supported macOS compiler target")
+    return targets[0]
+
+
+def configuration(target):
+    return {
+        "id": "swift-fake-suites-v2", "target": target,
+        "compile_flags": ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"],
+        "suites": [["Profile.swift", "Tests.swift"], ["Profile.swift", "Runtime.swift", "RuntimeTests.swift"]],
+        "merge": "sparse", "export": "single-merged-json", "environment": "inherited-v1",
+    }
 
 
 def execute(command, *, timeout=180, env=None):
@@ -42,29 +59,35 @@ def collect(destination):
     option = chr(45) * 2
     tools = {}
     versions = {}
+    xcrun = ["/usr/bin/xcrun", option + "sdk", "macosx"]
     for name in ("swiftc", "llvm-profdata", "llvm-cov"):
-        tool = execute(["/usr/bin/xcrun", option + "find", name], timeout=15).strip()
+        tool = execute([*xcrun, option + "find", name], timeout=15).strip()
         if not Path(tool).is_absolute() or not Path(tool).is_file():
             raise ValueError("missing selected developer tool")
         tools[name] = tool
         versions[name] = execute([tool, option + "version"], timeout=15).strip()
-    sdk = execute(["/usr/bin/xcrun", option + "show-sdk-path"], timeout=15).strip()
-    if not Path(sdk).is_absolute() or not Path(sdk).is_dir():
+        if not versions[name] or not versions[name].isascii() or any(
+            char != "\n" and not 32 <= ord(char) < 127 for char in versions[name]
+        ):
+            raise ValueError("missing compiler or LLVM version")
+    sdk = {"name": "macosx"}
+    for field, query in (("path", "show-sdk-path"), ("version", "show-sdk-version"), ("build", "show-sdk-build-version")):
+        sdk[field] = execute([*xcrun, option + query], timeout=15).strip()
+    if not Path(sdk["path"]).is_absolute() or not Path(sdk["path"]).is_dir():
         raise ValueError("missing selected SDK")
+    if not re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,3}", sdk["version"]) or not re.fullmatch(r"[A-Za-z0-9.]+", sdk["build"]):
+        raise ValueError("missing SDK version or build")
+    config = configuration(compiler_target(versions["swiftc"]))
 
     with tempfile.TemporaryDirectory(prefix="vollmacht-swift-coverage-") as temporary:
         directory = Path(temporary)
         objects = []
         profiles = []
-        for name, inputs in (
-            ("profile-tests", ["Profile.swift", "Tests.swift"]),
-            ("runtime-tests", ["Profile.swift", "Runtime.swift", "RuntimeTests.swift"]),
-        ):
+        for name, inputs in zip(("profile-tests", "runtime-tests"), config["suites"], strict=True):
             binary = directory / name
             execute([
-                tools["swiftc"], "-warnings-as-errors", "-Onone",
-                "-sdk", sdk,
-                "-profile-generate", "-profile-coverage-mapping",
+                tools["swiftc"], *config["compile_flags"],
+                "-sdk", sdk["path"], "-target", config["target"],
                 "-module-cache-path", str(directory / "cache"),
                 *[str(source / item) for item in inputs], "-o", str(binary),
             ])
@@ -88,10 +111,11 @@ def collect(destination):
         ]))
         validate_report(report, source)
         metadata = {
-            "schema": 1,
+            "schema": 2,
             "tools": tools,
             "versions": versions,
             "sdk": sdk,
+            "collector_config": config,
             "measured_suites": ["Tests.swift", "RuntimeTests.swift"],
             "native_backend": "represented in coverage, required zero executions",
             "unmeasured": {
