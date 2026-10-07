@@ -141,12 +141,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
+name = "base64"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
+
+[[package]]
 name = "base64urlsafedata"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b08e33815c87d8cadcddb1e74ac307368a3751fbe40c961538afa21a1899f21c"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "pastey",
  "serde",
 ]
@@ -1334,7 +1340,7 @@ version = "0.1.0-dev"
 name = "vollmacht-helper-launcher"
 version = "0.1.0-dev"
 dependencies = [
- "base64",
+ "base64 0.23.1",
  "getrandom 0.4.3",
  "libc",
  "openssl",
@@ -1346,7 +1352,7 @@ dependencies = [
 name = "vollmacht-helper-probe"
 version = "0.1.0-dev"
 dependencies = [
- "base64",
+ "base64 0.23.1",
  "serde",
  "serde_json",
  "tokio",
@@ -1460,7 +1466,7 @@ checksum = "779e9c80ff248c7e12ea967f909249101f6e86f70fccd742d4b66c490c1710b4"
 dependencies = [
  "async-stream",
  "async-trait",
- "base64",
+ "base64 0.21.7",
  "base64urlsafedata",
  "bitflags 1.3.2",
  "futures",
@@ -1505,7 +1511,7 @@ version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "296d2d501feb715d80b8e186fb88bab1073bca17f460303a1013d17b673bea6a"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "base64urlsafedata",
  "der-parser",
  "hex",
@@ -1532,7 +1538,7 @@ version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c37393beac9c1ed1ca6dbb30b1e01783fb316ab3a45d90ecd48c99052dd7ef1e"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "base64urlsafedata",
  "serde",
  "serde_json",
