@@ -15,7 +15,7 @@ vollmacht-helper-probe = { version = "=0.1.0-dev", path = "../helper-protocol" }
 serde_json = "=1.0.151"
 
 [dev-dependencies]
-base64 = "=0.21.7"
+base64 = { version = "=0.23.1", default-features = false, features = ["std"] }
 getrandom = "=0.4.3"
 openssl = "=0.10.81"
 
