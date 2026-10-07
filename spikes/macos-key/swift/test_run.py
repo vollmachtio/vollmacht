@@ -53,13 +53,13 @@ class RunnerTests(unittest.TestCase):
         with patch.object(sys, "platform", "darwin"), patch.object(sys, "argv", ["run.py"]), patch.object(run, "run") as execute:
             run.main()
         calls = execute.call_args_list
-        self.assertEqual(len(calls), 11)
-        for index in (0, 2, 4, 6, 8, 10):
+        self.assertEqual(len(calls), 13)
+        for index in (0, 2, 4, 6, 8, 10, 12):
             self.assertEqual(calls[index].args[0][0], "/usr/bin/swiftc")
             self.assertEqual(calls[index].kwargs["timeout"], 180)
         for index, name in ((1, "profile-tests"), (3, "runtime-tests"),
                             (5, "diagnostic-plan-tests"), (7, "diagnostic-session-tests"),
-                            (9, "delayed-diagnostic-controller-tests")):
+                            (9, "delayed-diagnostic-controller-tests"), (11, "probe-operation-state-tests")):
             self.assertEqual(len(calls[index].args[0]), 1)
             self.assertEqual(Path(calls[index].args[0][0]).name, name)
             self.assertEqual(calls[index].kwargs["timeout"], 15)
@@ -73,8 +73,12 @@ class RunnerTests(unittest.TestCase):
                                              "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift"])
         self.assertIn("-strict-concurrency=complete", calls[8].args[0])
         self.assertEqual(calls[8].args[0][calls[8].args[0].index("-swift-version") + 1], "6")
-        self.assertIn("-typecheck", calls[10].args[0])
-        self.assertEqual(Path(calls[10].args[0][-1]).name, "ProbeView.swift")
+        operation_sources = [Path(arg).name for arg in calls[10].args[0] if arg.endswith(".swift")]
+        self.assertEqual(operation_sources, ["ProbeOperationState.swift", "ProbeOperationStateTests.swift"])
+        self.assertIn("-strict-concurrency=complete", calls[10].args[0])
+        self.assertEqual(calls[10].args[0][calls[10].args[0].index("-swift-version") + 1], "6")
+        self.assertIn("-typecheck", calls[12].args[0])
+        self.assertEqual(Path(calls[12].args[0][-1]).name, "ProbeView.swift")
 
 
 if __name__ == "__main__":

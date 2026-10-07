@@ -63,6 +63,14 @@ def main():
             "-o", str(controller_tests),
         ], timeout=180)
         run([str(controller_tests)], timeout=15)
+        operation_tests = directory / "probe-operation-state-tests"
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors", "-swift-version", "6", "-strict-concurrency=complete",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "ProbeOperationState.swift"), str(source / "ProbeOperationStateTests.swift"),
+            "-o", str(operation_tests),
+        ], timeout=180)
+        run([str(operation_tests)], timeout=15)
         # Check the manual UI without launching it or accessing Keychain.
         run([
             "/usr/bin/swiftc", "-warnings-as-errors", "-typecheck",
