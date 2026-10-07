@@ -86,9 +86,20 @@ class CoverageTests(unittest.TestCase):
             def execute(command, *, timeout=180, env=None):
                 commands.append((command, timeout, env))
                 if command[:1] == ["/usr/bin/xcrun"]:
-                    return str(sdk if command[1] == option + "show-sdk-path" else tool)
+                    self.assertEqual(command[1:3], [option + "sdk", "macosx"])
+                    query = command[3]
+                    if query == option + "show-sdk-path":
+                        return str(sdk)
+                    if query == option + "show-sdk-version":
+                        return "" if failure == "sdk-version" else "26.5"
+                    if query == option + "show-sdk-build-version":
+                        if failure == "sdk-query":
+                            raise subprocess.CalledProcessError(1, command)
+                        return "" if failure == "sdk-build" else "25F70"
+                    self.assertEqual(query, option + "find")
+                    return str(tool)
                 if command[-1] == option + "version":
-                    return "fixture tool version"
+                    return "" if failure == "tool-version" else "fixture tool version\nTarget: arm64-apple-macosx26.0"
                 if "-profile-generate" in command:
                     build_directories.append(Path(command[-1]).parent)
                     if failure == "compile":
@@ -123,24 +134,39 @@ class CoverageTests(unittest.TestCase):
                     runner.collect(destination)
                     self.assertEqual(json.loads((destination / "coverage.json").read_text()), report())
                     metadata = json.loads((destination / "metadata.json").read_text())
+                    self.assertEqual(metadata["schema"], 2)
+                    self.assertEqual(metadata["sdk"], {"name": "macosx", "path": str(sdk), "version": "26.5", "build": "25F70"})
+                    config = metadata["collector_config"]
+                    self.assertEqual(config["compile_flags"], ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"])
                     self.assertEqual(metadata["measured_suites"], ["Tests.swift", "RuntimeTests.swift"])
                     self.assertIn("ProbeView.swift", metadata["unmeasured"])
                     self.assertIn("native_keychain", metadata["unmeasured"])
                     compile_calls = [command for command, _, _ in commands if "-profile-generate" in command]
                     self.assertEqual(len(compile_calls), 2)
-                    for command in compile_calls:
+                    for command, inputs in zip(compile_calls, config["suites"], strict=True):
                         self.assertIn("-profile-coverage-mapping", command)
                         self.assertNotIn(str(SOURCE / "ProbeView.swift"), command)
+                        self.assertEqual(command[1:5], config["compile_flags"])
+                        self.assertEqual(command[command.index("-target") + 1], config["target"])
+                        self.assertEqual(command[command.index("-sdk") + 1], metadata["sdk"]["path"])
+                        self.assertEqual([Path(value).name for value in command if value.endswith(".swift")], inputs)
                     export = [command for command, _, _ in commands if "export" in command][0]
                     self.assertIn("-object", export)
-            self.assertTrue(build_directories)
+                    self.assertEqual(config["export"], "single-merged-json")
+                    merge = [command for command, _, _ in commands if "merge" in command][0]
+                    self.assertEqual(config["merge"], "sparse")
+                    self.assertIn("-sparse", merge)
+            if failure in ("sdk-version", "sdk-build", "sdk-query", "tool-version"):
+                self.assertFalse(build_directories)
+            else:
+                self.assertTrue(build_directories)
             self.assertTrue(all(not path.exists() for path in build_directories))
 
     def test_success_commands_and_metadata(self):
         self.exercise()
 
     def test_failures_leave_no_success_artifact_and_clean_temporary_builds(self):
-        for failure in ("compile", "run", "profile", "json", "source"):
+        for failure in ("compile", "run", "profile", "json", "source", "sdk-version", "sdk-build", "sdk-query", "tool-version"):
             with self.subTest(failure=failure):
                 self.exercise(failure)
 

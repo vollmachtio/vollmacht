@@ -7,6 +7,7 @@ import re
 import sys
 
 from coverage_compare import InvalidReport, fields, load, require, validate
+from coverage_swift import compiler_target, configuration
 
 
 PREFIX = "spikes/macos-key/swift/"
@@ -14,7 +15,7 @@ SOURCES = [PREFIX + name for name in (
     "Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
 )]
 METRICS = ["lines", "functions"]
-POLICY = "swift-fake-suites-v1-sdk-build-unverified"
+POLICY = "swift-fake-suites-v2-sdk-config-identity"
 
 
 def canonical_absolute(value):
@@ -28,34 +29,44 @@ def canonical_absolute(value):
 
 
 def tool_identity(metadata):
-    fields(metadata, {"schema", "tools", "versions", "sdk", "measured_suites",
+    fields(metadata, {"schema", "tools", "versions", "sdk", "collector_config", "measured_suites",
                       "native_backend", "unmeasured", "limits"}, "invalid collector metadata")
-    require(type(metadata["schema"]) is int and metadata["schema"] == 1,
+    require(type(metadata["schema"]) is int and metadata["schema"] == 2,
             "unsupported collector metadata version")
     names = {"swiftc", "llvm-profdata", "llvm-cov"}
     fields(metadata["versions"], names, "missing compiler or LLVM versions")
     fields(metadata["tools"], names, "missing compiler or LLVM tool paths")
     for path in metadata["tools"].values():
         canonical_absolute(path)
-    canonical_absolute(metadata["sdk"])
+    fields(metadata["sdk"], {"name", "path", "version", "build"}, "missing SDK identity")
+    sdk = metadata["sdk"]
+    canonical_absolute(sdk["path"])
+    require(sdk["name"] == "macosx", "unsupported SDK")
+    require(type(sdk["version"]) is str and re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,3}", sdk["version"])
+            and type(sdk["build"]) is str and re.fullmatch(r"[A-Za-z0-9.]+", sdk["build"]), "invalid SDK identity")
     for version in metadata["versions"].values():
         require(type(version) is str and bool(version) and version.isascii()
                 and all(char == "\n" or 32 <= ord(char) < 127 for char in version),
                 "invalid compiler or LLVM version")
-    targets = re.findall(r"^Target: ([a-zA-Z0-9_.-]+)$", metadata["versions"]["swiftc"], re.MULTILINE)
-    require(len(targets) == 1 and "-apple-macosx" in targets[0], "missing macOS compiler target")
+    try:
+        target = compiler_target(metadata["versions"]["swiftc"])
+    except ValueError as error:
+        raise InvalidReport("missing macOS compiler target") from error
+    require(metadata["collector_config"] == configuration(target), "unsupported collector configuration")
     require(metadata["measured_suites"] == ["Tests.swift", "RuntimeTests.swift"],
             "unexpected measured suite list")
     fields(metadata["unmeasured"], {"ProbeView.swift", "native_keychain", "touch_id"},
            "missing explicit manual coverage boundaries")
     for value in [metadata["native_backend"], metadata["limits"], *metadata["unmeasured"].values()]:
         require(type(value) is str and bool(value.strip()), "missing measurement limitation")
-    # Paths vary between machines. Exact version text and target remain part of
-    # identity, but SDK build information is absent from collector schema 1.
-    versions = json.dumps(metadata["versions"], sort_keys=True, separators=(",", ":"))
+    # Installation paths are provenance, not measurement identity. These fields
+    # are declarations; a trusted caller must still authenticate same-run inputs.
+    identity = {"versions": metadata["versions"], "sdk": {key: sdk[key] for key in ("name", "version", "build")},
+                "collector_config": metadata["collector_config"]}
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":"))
     return {
-        "name": "swift-llvm-cov", "version": "sha256:" + hashlib.sha256(versions.encode()).hexdigest(),
-        "platform": targets[0], "policy_id": POLICY,
+        "name": "swift-llvm-cov", "version": "sha256:" + hashlib.sha256(encoded.encode()).hexdigest(),
+        "platform": target, "policy_id": POLICY,
     }
 
 

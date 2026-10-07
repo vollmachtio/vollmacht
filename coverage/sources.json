@@ -197,6 +197,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/helper-protocol/tests/reservation_model.rs",
+      "role": "assessment_model",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/helper-protocol/tests/support/client_data.rs",
       "role": "test_support",
       "measurement": "unmeasured"
@@ -244,6 +249,16 @@
     {
       "path": "spikes/macos-key/swift/ProbeView.swift",
       "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/DiagnosticPlan.swift",
+      "role": "assessment_model",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/DiagnosticPlanTests.swift",
+      "role": "test",
       "measurement": "unmeasured"
     },
     {

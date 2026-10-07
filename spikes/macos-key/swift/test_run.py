@@ -53,16 +53,19 @@ class RunnerTests(unittest.TestCase):
         with patch.object(sys, "platform", "darwin"), patch.object(sys, "argv", ["run.py"]), patch.object(run, "run") as execute:
             run.main()
         calls = execute.call_args_list
-        self.assertEqual(len(calls), 5)
-        for index in (0, 2, 4):
+        self.assertEqual(len(calls), 7)
+        for index in (0, 2, 4, 6):
             self.assertEqual(calls[index].args[0][0], "/usr/bin/swiftc")
             self.assertEqual(calls[index].kwargs["timeout"], 180)
-        for index, name in ((1, "profile-tests"), (3, "runtime-tests")):
+        for index, name in ((1, "profile-tests"), (3, "runtime-tests"),
+                            (5, "diagnostic-plan-tests")):
             self.assertEqual(len(calls[index].args[0]), 1)
             self.assertEqual(Path(calls[index].args[0][0]).name, name)
             self.assertEqual(calls[index].kwargs["timeout"], 15)
-        self.assertIn("-typecheck", calls[4].args[0])
-        self.assertEqual(Path(calls[4].args[0][-1]).name, "ProbeView.swift")
+        diagnostic_sources = [Path(arg).name for arg in calls[4].args[0] if arg.endswith(".swift")]
+        self.assertEqual(diagnostic_sources, ["DiagnosticPlan.swift", "DiagnosticPlanTests.swift"])
+        self.assertIn("-typecheck", calls[6].args[0])
+        self.assertEqual(Path(calls[6].args[0][-1]).name, "ProbeView.swift")
 
 
 if __name__ == "__main__":
