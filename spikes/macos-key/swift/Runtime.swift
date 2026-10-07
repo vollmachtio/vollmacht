@@ -21,6 +21,21 @@ struct RuntimeEvidence {
     let signature: Data
 }
 
+// A point-in-time binding, not authorization or a durable trust registry. A
+// reference-type Handle is retained as supplied; its underlying object is not
+// made immutable by these immutable fields.
+struct PreparedPersistentKey<Handle> {
+    let request: KeyRequest
+    let publicPin: Data
+    let handle: Handle
+
+    fileprivate init(request: KeyRequest, publicPin: Data, handle: Handle) {
+        self.request = request
+        self.publicPin = publicPin
+        self.handle = handle
+    }
+}
+
 protocol RuntimeBackend {
     associatedtype Handle
     mutating func reserve(_ request: KeyRequest) throws
@@ -63,7 +78,9 @@ func createPersistent<B: RuntimeBackend>(_ request: KeyRequest, using backend: i
     return result
 }
 
-func openPersistent<B: RuntimeBackend>(_ request: KeyRequest, expectedPublic: Data, using backend: inout B) throws -> RuntimeEvidence {
+func preparePersistent<B: RuntimeBackend>(
+    _ request: KeyRequest, expectedPublic: Data, using backend: inout B
+) throws -> PreparedPersistentKey<B.Handle> {
     _ = try validatePublic(expectedPublic)
     let record = try backend.readRecord(request)
     if record == RuntimeProfile.pending { throw RuntimeFailure.pending }
@@ -75,7 +92,14 @@ func openPersistent<B: RuntimeBackend>(_ request: KeyRequest, expectedPublic: Da
     guard matches.count == 1 else { throw RuntimeFailure.ambiguous }
     let publicBytes = try backend.publicBytes(matches[0])
     guard publicBytes == expectedPublic else { throw RuntimeFailure.pinMismatch }
-    return try evidence(matches[0], publicBytes: publicBytes, using: &backend)
+    // Equality to the already validated point also validates the returned bytes.
+    // Preparation must not sign, reserve, create, update or adopt another pin.
+    return PreparedPersistentKey(request: request, publicPin: expectedPublic, handle: matches[0])
+}
+
+func openPersistent<B: RuntimeBackend>(_ request: KeyRequest, expectedPublic: Data, using backend: inout B) throws -> RuntimeEvidence {
+    let prepared = try preparePersistent(request, expectedPublic: expectedPublic, using: &backend)
+    return try evidence(prepared.handle, publicBytes: prepared.publicPin, using: &backend)
 }
 
 // Only an explicitly invoked application action should instantiate and call this.

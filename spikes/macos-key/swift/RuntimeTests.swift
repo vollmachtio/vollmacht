@@ -25,6 +25,9 @@ struct FakeRuntime: RuntimeBackend {
     var invalidPublic = false
     var badSignature = false
     var wrongMessage = false
+    var publicHandles: [Int] = []
+    var signedHandles: [Int] = []
+    var publicOverride: Data?
 
     init() throws {
         var scalar = Data(repeating: 0, count: 32)
@@ -53,16 +56,116 @@ struct FakeRuntime: RuntimeBackend {
     mutating func create(_ request: KeyRequest) throws -> Int { try step("create"); handles = [1]; return 1 }
     mutating func publicBytes(_ handle: Int) throws -> Data {
         try step("public")
+        publicHandles.append(handle)
+        if let publicOverride { return publicOverride }
         return invalidPublic ? Data(repeating: 0, count: 65) : softwareKey.publicKey.x963Representation
     }
     mutating func signFixed(_ handle: Int) throws -> Data {
         try step("sign")
+        signedHandles.append(handle)
         return badSignature ? Data([0]) : try softwareKey.signature(for: wrongMessage ? Data("changed".utf8) : RuntimeProfile.message).derRepresentation
     }
 }
 
 @main
 struct RuntimeTests {
+    static func preparationTests(request: KeyRequest, publicPin: Data, otherPin: Data) throws {
+        var ready = try FakeRuntime()
+        ready.record = RuntimeProfile.readyPrefix + publicPin
+        ready.handles = [73]
+        let originalRecord = ready.record
+        let prepared = try preparePersistent(request, expectedPublic: publicPin, using: &ready)
+        try require(prepared.request.identifier == request.identifier
+                    && prepared.request.accessGroup == request.accessGroup, "prepared identity preserved")
+        try require(prepared.publicPin == publicPin && prepared.handle == 73, "exact pin and handle retained")
+        try require(ready.publicHandles == [73] && ready.signedHandles.isEmpty, "prepare cannot sign")
+        try require(ready.calls == ["read", "keys", "public"], "prepare is read-only")
+        try require(ready.record == originalRecord && ready.handles == [73], "prepare cannot change storage")
+        ready.handles = [99]
+        ready.record = RuntimeProfile.pending
+        try require(prepared.handle == 73 && prepared.publicPin == publicPin,
+                    "prepared result must not follow later lookup state")
+
+        let malformed: [(Data?, RuntimeFailure)] = [
+            (nil, .missing), (RuntimeProfile.pending, .pending), (Data(), .invalidRecord),
+            (RuntimeProfile.readyPrefix, .invalidRecord),
+            (RuntimeProfile.readyPrefix + publicPin.dropLast(), .invalidRecord),
+            (RuntimeProfile.readyPrefix + publicPin + Data([0]), .invalidRecord),
+            (Data(repeating: 0, count: RuntimeProfile.readyPrefix.count + 65), .invalidRecord),
+            (RuntimeProfile.readyPrefix + otherPin, .pinMismatch),
+        ]
+        for (record, expected) in malformed {
+            var failing = try FakeRuntime()
+            failing.record = record
+            failing.handles = [73]
+            try rejects(expected) { _ = try preparePersistent(request, expectedPublic: publicPin, using: &failing) }
+            try require(failing.calls == ["read"] && failing.record == record && failing.handles == [73],
+                        "bad record cannot proceed or mutate storage")
+        }
+        for handles in [[], [73], [73, 74], [73, 73], [73, 74, 75]] {
+            var failing = try FakeRuntime()
+            failing.record = originalRecord
+            failing.handles = handles
+            let prepare = {
+                _ = try preparePersistent(request, expectedPublic: publicPin, using: &failing)
+            }
+            if handles.count == 1 {
+                // Positive control for this exact lookup-cardinality matrix:
+                // an implementation that rejects every lookup must fail here.
+                try prepare()
+            } else {
+                try rejects(handles.isEmpty ? .missing : .ambiguous, prepare)
+            }
+            let expectedCalls = handles.count == 1 ? ["read", "keys", "public"] : ["read", "keys"]
+            try require(failing.calls == expectedCalls && failing.handles == handles
+                        && failing.record == originalRecord, "lookup cardinality control changed storage or calls")
+        }
+        let invalidPoints = [Data(), Data([4]), Data(repeating: 0, count: 65),
+                             Data([4] + Array(repeating: 0, count: 64)), publicPin + Data([0])]
+        for point in invalidPoints {
+            var failing = try FakeRuntime()
+            failing.record = RuntimeProfile.readyPrefix + point
+            failing.publicOverride = point
+            failing.handles = [73]
+            try rejects(.invalidKey) { _ = try preparePersistent(request, expectedPublic: point, using: &failing) }
+            try require(failing.calls.isEmpty, "invalid retained point must fail before backend access")
+        }
+        for actual in invalidPoints + [otherPin] {
+            var failing = try FakeRuntime()
+            failing.record = originalRecord
+            failing.handles = [73]
+            failing.publicOverride = actual
+            try rejects(.pinMismatch) { _ = try preparePersistent(request, expectedPublic: publicPin, using: &failing) }
+            try require(failing.calls == ["read", "keys", "public"], "substitution cannot sign or repair")
+        }
+        for (stage, expectedCalls) in [("read", ["read"]), ("keys", ["read", "keys"]),
+                                       ("public", ["read", "keys", "public"])] {
+            var failing = try FakeRuntime()
+            failing.record = originalRecord
+            failing.handles = [73]
+            failing.failAt = stage
+            try rejects(.status(-1)) { _ = try preparePersistent(request, expectedPublic: publicPin, using: &failing) }
+            try require(failing.calls == expectedCalls && failing.record == originalRecord
+                        && failing.handles == [73], "prepare denial cannot retry or mutate")
+        }
+        var reopened = try FakeRuntime()
+        reopened.record = originalRecord
+        reopened.handles = [73]
+        let evidence = try openPersistent(request, expectedPublic: publicPin, using: &reopened)
+        try require(evidence.publicKey == publicPin && reopened.publicHandles == [73]
+                    && reopened.signedHandles == [73], "open signs exactly the prepared handle")
+        try require(reopened.calls == ["read", "keys", "public", "sign"], "open still signs once")
+        for wrongMessage in [false, true] {
+            var failing = try FakeRuntime()
+            failing.record = originalRecord
+            failing.handles = [73]
+            failing.badSignature = !wrongMessage
+            failing.wrongMessage = wrongMessage
+            try rejects(.invalidKey) { _ = try openPersistent(request, expectedPublic: publicPin, using: &failing) }
+            try require(failing.calls == ["read", "keys", "public", "sign"], "open retains signature verification")
+        }
+    }
+
     static func main() throws {
         let request = try KeyRequest(suffix: "0123456789abcdef0123456789abcdef", accessGroup: "TESTTEAM.io.vollmacht.test")
         var backend = try FakeRuntime()
@@ -112,6 +215,7 @@ struct RuntimeTests {
         var wrongScalar = Data(repeating: 0, count: 32)
         wrongScalar[31] = 2
         let wrongPublic = try P256.Signing.PrivateKey(rawRepresentation: wrongScalar).publicKey.x963Representation
+        try preparationTests(request: request, publicPin: created.publicKey, otherPin: wrongPublic)
         backend.calls = []
         try rejects(.pinMismatch) { _ = try openPersistent(request, expectedPublic: wrongPublic, using: &backend) }
         try require(backend.calls == ["read"], "wrong retained pin cannot reach key")
