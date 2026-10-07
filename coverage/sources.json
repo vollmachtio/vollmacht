@@ -267,6 +267,16 @@
       "measurement": "raw_swift_fake_tests"
     },
     {
+      "path": "spikes/macos-key/swift/ProbeModel.swift",
+      "role": "experiment",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/ProbeModelTests.swift",
+      "role": "test",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
       "path": "spikes/macos-key/swift/ProbeOperationState.swift",
       "role": "experiment",
       "measurement": "raw_swift_fake_tests"
