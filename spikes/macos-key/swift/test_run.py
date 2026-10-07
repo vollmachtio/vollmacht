@@ -53,14 +53,14 @@ class RunnerTests(unittest.TestCase):
         with patch.object(sys, "platform", "darwin"), patch.object(sys, "argv", ["run.py"]), patch.object(run, "run") as execute:
             run.main()
         calls = execute.call_args_list
-        self.assertEqual(len(calls), 15)
-        for index in (0, 2, 4, 6, 8, 10, 12, 14):
+        self.assertEqual(len(calls), 17)
+        for index in (0, 2, 4, 6, 8, 10, 12, 14, 16):
             self.assertEqual(calls[index].args[0][0], "/usr/bin/swiftc")
             self.assertEqual(calls[index].kwargs["timeout"], 180)
         for index, name in ((1, "profile-tests"), (3, "runtime-tests"),
                             (5, "diagnostic-plan-tests"), (7, "diagnostic-session-tests"),
                             (9, "delayed-diagnostic-controller-tests"), (11, "probe-operation-state-tests"),
-                            (13, "probe-event-adapter-tests")):
+                            (13, "probe-event-adapter-tests"), (15, "probe-model-tests")):
             self.assertEqual(len(calls[index].args[0]), 1)
             self.assertEqual(Path(calls[index].args[0][0]).name, name)
             self.assertEqual(calls[index].kwargs["timeout"], 15)
@@ -84,8 +84,19 @@ class RunnerTests(unittest.TestCase):
                                            "ProbeEventAdapter.swift", "ProbeEventAdapterTests.swift"])
         self.assertIn("-strict-concurrency=complete", calls[12].args[0])
         self.assertEqual(calls[12].args[0][calls[12].args[0].index("-swift-version") + 1], "6")
-        self.assertIn("-typecheck", calls[14].args[0])
-        self.assertEqual(Path(calls[14].args[0][-1]).name, "ProbeView.swift")
+        model_dependencies = ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift", "DiagnosticSession.swift",
+                              "DelayedDiagnosticController.swift", "ProbeOperationState.swift", "ProbeEventAdapter.swift",
+                              "ProbeModel.swift"]
+        model_sources = [Path(arg).name for arg in calls[14].args[0] if arg.endswith(".swift")]
+        self.assertEqual(model_sources, model_dependencies + ["ProbeModelTests.swift"])
+        ui_sources = [Path(arg).name for arg in calls[16].args[0] if arg.endswith(".swift")]
+        self.assertEqual(ui_sources, model_dependencies + ["ProbeView.swift"])
+        for index in (14, 16):
+            self.assertIn("-strict-concurrency=complete", calls[index].args[0])
+            self.assertEqual(calls[index].args[0][calls[index].args[0].index("-swift-version") + 1], "6")
+        self.assertIn("-typecheck", calls[16].args[0])
+        for index in range(0, 16, 2):
+            self.assertNotIn("ProbeView.swift", [Path(arg).name for arg in calls[index].args[0]])
 
 
 if __name__ == "__main__":

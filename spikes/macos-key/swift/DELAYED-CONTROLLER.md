@@ -1,10 +1,10 @@
 # Delayed diagnostic controller
 
-Experimental P04b plumbing, not production authorization or a completed hardware test. There is no view integration in this slice. Do not copy these changes into the personal Xcode project or run a native diagnostic yet.
+Experimental P04b plumbing, not production authorization or a completed hardware test. The manual view now connects the controller through the shared model and exact event adapter. After independent review and CI, the maintainer may update the personal target following [the manual handoff](RESTART.md), preserving the existing key, pin and signing identity. Automated checks do not update that project or run native diagnostics.
 
 ## Ownership and timing
 
-The controller's explicit prepare command invokes a trusted driver factory on a dedicated serial worker. The factory constructs the existing-key session there, retaining its original backend, authentication context and prepared handle. Initialization of the controller itself does not invoke the factory or access Keychain. A private mutex protects the non-Sendable driver without unchecked Sendable conformance. Factories, drivers and clocks must not synchronously reenter the controller or export mutable session aliases. Observers run outside that lock and may enqueue commands; a future UI must deliver its updates on the main thread.
+The controller's explicit prepare command invokes a trusted driver factory on a dedicated serial worker. The factory constructs the existing-key session there, retaining its original backend, authentication context and prepared handle. Initialization of the controller itself does not invoke the factory or access Keychain. A private mutex protects the non-Sendable driver without unchecked Sendable conformance. Factories, drivers and clocks must not synchronously reenter the controller or export mutable session aliases. Observers run outside that lock and may enqueue commands; the shared model delivers their events to the main actor before applying the exact adapter.
 
 An explicit arm command fixes one attempt 15 seconds later, with a five-second acceptance window. The session's own timing checks also remain in force. Early, late, discontinuous or invalid-time callbacks consume the controller without starting the driver. No automatic retry, rescheduling, key replacement or cleanup is provided. Duplicate callbacks cannot run another attempt.
 
@@ -20,4 +20,4 @@ The fifth fake-only suite compiles in Swift 6 mode with complete strict concurre
 
 Existing suites and UI typechecking remain mandatory. Coverage includes the controller and its tests without removing unexecuted defensive paths. This does not establish physical behavior, distribution compatibility or a complete coverage-regression gate.
 
-Next work is reviewed UI integration and explicit manual instructions. The existing experimental key, signing identity and personal Xcode project must remain unchanged until that handoff. Denied-access and physical timing tests still require the maintainer; neither compilation nor fake success closes P04b or freezes P06.
+The next gate is the maintainer's reviewed manual handoff, not further implicit execution. The shared model prevents legacy Create/Open overlap and retains the controller across window disappearance. Denied-access and physical timing tests still require the maintainer; neither compilation nor fake success closes P04b or freezes P06.

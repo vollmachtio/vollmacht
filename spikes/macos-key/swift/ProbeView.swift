@@ -30,9 +30,9 @@ enum ProbeConfiguration {
     }
 }
 
+@MainActor
 struct ProbeView: View {
-    @State private var busy = false
-    @State private var message = "No Keychain operations have run in this window."
+    @StateObject private var model = ProbeModel.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -40,11 +40,18 @@ struct ProbeView: View {
             Text("Create adds one dedicated Secure Enclave key and one reservation record. Nothing is deleted. This does not enroll a production issuer.")
             Text("After creation, quit the app completely, reopen it, then choose Open and verify. The public-key pin is local test evidence, not a protected trust registry.")
             HStack {
-                Button("Create experimental key") { perform(create: true) }
-                Button("Open and verify") { perform(create: false) }
+                Button("Create experimental key") { model.perform(create: true) }
+                Button("Open and verify") { model.perform(create: false) }
             }
-            .disabled(busy)
-            Text(message).font(.system(.body, design: .monospaced)).textSelection(.enabled)
+            .disabled(!model.canRunLegacy)
+            HStack {
+                Button("Prepare existing key diagnostic") { model.prepare() }.disabled(!model.canPrepare)
+                Button("Arm one delayed attempt") { model.arm() }.disabled(!model.canArm)
+                Button("Request cancellation") { model.cancel() }.disabled(!model.canCancel)
+            }
+            Text("One diagnostic per app launch. Arm schedules one attempt after 15 seconds with a five-second start window. A prepared diagnostic can be armed or abandoned by quitting. Closing a window does not cancel it.")
+            Text("Screen lock is not proof that Keychain is locked. Results remain inconclusive; an entered operation can finish after the window. No automatic retry or cleanup.")
+            Text(model.message).font(.system(.body, design: .monospaced)).textSelection(.enabled)
             Text("No biometric requirement is added. Human approval remains a separate WebAuthn ceremony.")
                 .font(.footnote)
         }
@@ -52,10 +59,12 @@ struct ProbeView: View {
         .frame(minWidth: 640, minHeight: 320)
     }
 
-    private func perform(create: Bool) {
-        guard !busy else { return }
-        busy = true
-        message = "Working. Do not repeat the operation."
+}
+
+extension ProbeModel {
+    // Lazy app-lifetime owner. Constructing it only stores closures; signing
+    // identity, preferences and native backend are accessed on workers on demand.
+    static let shared = ProbeModel(legacyWork: { create, completion in
         DispatchQueue.global(qos: .userInitiated).async {
             let result: String
             do {
@@ -78,12 +87,18 @@ struct ProbeView: View {
                 }
                 result = "PASS: \(create ? "created" : "reopened") and verified a fixed-message signature.\nPublic key: \(evidence.publicKey.base64EncodedString())\n\(create ? "Now quit and reopen the app." : "Compare this public key with the creation result.")"
             } catch {
-                result = "STOP: \(String(describing: error))\nNo automatic retry, replacement or cleanup. Report this result."
+                result = "STOP: \(ProbeFailureDisplay.label(error))\nNo automatic retry, replacement or cleanup. Report this result."
             }
-            DispatchQueue.main.async {
-                message = result
-                busy = false
-            }
+            completion(result)
         }
-    }
+    }, factory: { token, observer in
+        DelayedDiagnosticController(runID: token, clock: ContinuousDiagnosticClock(), factory: { id, clock in
+            let request = try ProbeConfiguration.request()
+            guard let pin = UserDefaults.standard.data(forKey: ProbeConfiguration.pinPreference), pin.count == 65 else {
+                throw RuntimeFailure.pinMismatch
+            }
+            return try OwnedSessionDriver(request: request, expectedPublic: pin, runID: id,
+                                          backend: NativeKeyBackend(), clock: clock)
+        }, observer: observer)
+    })
 }

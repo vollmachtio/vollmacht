@@ -15,10 +15,11 @@ SOURCES = [PREFIX + name for name in (
     "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift",
     "DiagnosticPlan.swift", "DiagnosticPlanTests.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift",
     "ProbeEventAdapter.swift", "ProbeEventAdapterTests.swift", "ProbeOperationState.swift", "ProbeOperationStateTests.swift",
+    "ProbeModel.swift", "ProbeModelTests.swift",
     "Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
 )]
 METRICS = ["lines", "functions"]
-POLICY = "swift-fake-suites-v6-sdk-config-identity"
+POLICY = "swift-fake-suites-v7-sdk-config-identity"
 
 
 def canonical_absolute(value):
