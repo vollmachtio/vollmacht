@@ -71,6 +71,17 @@ def main():
             "-o", str(operation_tests),
         ], timeout=180)
         run([str(operation_tests)], timeout=15)
+        adapter_tests = directory / "probe-event-adapter-tests"
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors", "-swift-version", "6", "-strict-concurrency=complete",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "Profile.swift"), str(source / "Runtime.swift"),
+            str(source / "DiagnosticPlan.swift"), str(source / "DiagnosticSession.swift"),
+            str(source / "DelayedDiagnosticController.swift"), str(source / "ProbeOperationState.swift"),
+            str(source / "ProbeEventAdapter.swift"), str(source / "ProbeEventAdapterTests.swift"),
+            "-o", str(adapter_tests),
+        ], timeout=180)
+        run([str(adapter_tests)], timeout=15)
         # Check the manual UI without launching it or accessing Keychain.
         run([
             "/usr/bin/swiftc", "-warnings-as-errors", "-typecheck",

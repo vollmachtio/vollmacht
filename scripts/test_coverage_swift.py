@@ -20,10 +20,13 @@ EXPECTED_SUITES = [
     ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift", "DiagnosticSession.swift",
      "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift"],
     ["ProbeOperationState.swift", "ProbeOperationStateTests.swift"],
+    ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift", "DiagnosticSession.swift",
+     "DelayedDiagnosticController.swift", "ProbeOperationState.swift", "ProbeEventAdapter.swift", "ProbeEventAdapterTests.swift"],
 ]
 EXPECTED_BINARIES = ["profile-tests", "runtime-tests", "diagnostic-plan-tests", "diagnostic-session-tests",
-                     "delayed-diagnostic-controller-tests", "probe-operation-state-tests"]
+                     "delayed-diagnostic-controller-tests", "probe-operation-state-tests", "probe-event-adapter-tests"]
 EXPECTED_SUITE_FLAGS = [[], [], [], [], ["-swift-version", "6", "-strict-concurrency=complete"],
+                        ["-swift-version", "6", "-strict-concurrency=complete"],
                         ["-swift-version", "6", "-strict-concurrency=complete"]]
 EXPECTED_SOURCES = sorted({name for inputs in EXPECTED_SUITES for name in inputs})
 
@@ -134,7 +137,8 @@ class CoverageTests(unittest.TestCase):
                     if (failure == "run"
                         or (failure == "session-run" and Path(command[0]).name == "diagnostic-session-tests")
                         or (failure == "controller-run" and Path(command[0]).name == "delayed-diagnostic-controller-tests")
-                        or (failure == "operation-run" and Path(command[0]).name == "probe-operation-state-tests")):
+                        or (failure == "operation-run" and Path(command[0]).name == "probe-operation-state-tests")
+                        or (failure == "adapter-run" and Path(command[0]).name == "probe-event-adapter-tests")):
                         raise subprocess.TimeoutExpired(command, timeout)
                     if failure != "profile":
                         Path(env["LLVM_PROFILE_FILE"].replace("%p", "123")).write_bytes(b"profile")
@@ -164,13 +168,13 @@ class CoverageTests(unittest.TestCase):
                     config = metadata["collector_config"]
                     self.assertEqual(config["compile_flags"], ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"])
                     self.assertEqual(metadata["measured_suites"], [inputs[-1] for inputs in EXPECTED_SUITES])
-                    self.assertEqual(config["id"], "swift-fake-suites-v5")
+                    self.assertEqual(config["id"], "swift-fake-suites-v6")
                     self.assertEqual(config["suites"], EXPECTED_SUITES)
                     self.assertEqual(config["suite_compile_flags"], EXPECTED_SUITE_FLAGS)
                     self.assertIn("ProbeView.swift", metadata["unmeasured"])
                     self.assertIn("native_keychain", metadata["unmeasured"])
                     compile_calls = [command for command, _, _ in commands if "-profile-generate" in command]
-                    self.assertEqual(len(compile_calls), 6)
+                    self.assertEqual(len(compile_calls), 7)
                     self.assertEqual([Path(command[-1]).name for command in compile_calls], EXPECTED_BINARIES)
                     for command, inputs, flags in zip(compile_calls, EXPECTED_SUITES, EXPECTED_SUITE_FLAGS, strict=True):
                         self.assertIn("-profile-coverage-mapping", command)
@@ -212,7 +216,7 @@ class CoverageTests(unittest.TestCase):
                     runner.validate_report(value, SOURCE)
 
     def test_failures_leave_no_success_artifact_and_clean_temporary_builds(self):
-        for failure in ("compile", "run", "session-run", "controller-run", "operation-run", "profile", "json", "source", "sdk-version", "sdk-build", "sdk-query", "tool-version"):
+        for failure in ("compile", "run", "session-run", "controller-run", "operation-run", "adapter-run", "profile", "json", "source", "sdk-version", "sdk-build", "sdk-query", "tool-version"):
             with self.subTest(failure=failure):
                 self.exercise(failure)
 
