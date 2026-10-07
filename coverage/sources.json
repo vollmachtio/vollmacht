@@ -247,6 +247,16 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/macos-key/swift/DiagnosticPlan.swift",
+      "role": "assessment_model",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/macos-key/swift/DiagnosticPlanTests.swift",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/macos-key/swift/Profile.swift",
       "role": "experiment",
       "measurement": "raw_swift_fake_tests"
