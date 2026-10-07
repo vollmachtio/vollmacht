@@ -28,6 +28,8 @@ This is not a serialized helper protocol, concurrency test or claim that Apple a
 
 The original `reserveAndCreate` returns a pending handle, not enrolled authority. The new manual runtime adds a ready record, public-key binding and fixed-message signature checks, but no production registry. Its markers are experiment fixtures, not a production recovery schema. Fakes do not establish native reservation atomicity or durable crash behavior.
 
+`preparePersistent` now isolates the read-only existing-key path for future diagnostics. It validates the caller's retained P-256 public point, exact ready record, unique lookup and matching public bytes, then returns immutable request/pin fields and the exact retained handle. It never signs, creates, updates, repins or falls back. This is a point-in-time binding, not authorization, a storage lock or protection against later native-state changes; a generic reference handle's underlying object is not made immutable. `openPersistent` reuses preparation and still verifies one fixed-message signature. Fake tests cover preparation failures and preserved open behavior. No new UI, timer, native diagnostic wiring or user-project changes are included.
+
 ## Next gates
 
 Before any real native run, independently review the runtime and UI and verify the signed test identity and provisioning. Follow the [restart instructions](RESTART.md) with its fixed dedicated identifier. The broader [manual matrix](../DURABLE.md), protected enrollment and recovery remain gates. Separately approve narrowly scoped cleanup. Do not add a generic arbitrary-dictionary or arbitrary-message signing interface.
