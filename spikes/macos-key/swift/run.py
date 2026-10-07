@@ -53,6 +53,16 @@ def main():
             str(source / "DiagnosticSessionTests.swift"), "-o", str(session_tests),
         ], timeout=180)
         run([str(session_tests)], timeout=15)
+        controller_tests = directory / "delayed-diagnostic-controller-tests"
+        run([
+            "/usr/bin/swiftc", "-warnings-as-errors", "-swift-version", "6", "-strict-concurrency=complete",
+            "-module-cache-path", str(directory / "cache"),
+            str(source / "Profile.swift"), str(source / "Runtime.swift"),
+            str(source / "DiagnosticPlan.swift"), str(source / "DiagnosticSession.swift"),
+            str(source / "DelayedDiagnosticController.swift"), str(source / "DelayedDiagnosticControllerTests.swift"),
+            "-o", str(controller_tests),
+        ], timeout=180)
+        run([str(controller_tests)], timeout=15)
         # Check the manual UI without launching it or accessing Keychain.
         run([
             "/usr/bin/swiftc", "-warnings-as-errors", "-typecheck",

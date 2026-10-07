@@ -12,11 +12,12 @@ from coverage_swift import MEASURED_SUITES, compiler_target, configuration
 
 PREFIX = "spikes/macos-key/swift/"
 SOURCES = [PREFIX + name for name in (
+    "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift",
     "DiagnosticPlan.swift", "DiagnosticPlanTests.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift",
     "Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
 )]
 METRICS = ["lines", "functions"]
-POLICY = "swift-fake-suites-v3-sdk-config-identity"
+POLICY = "swift-fake-suites-v4-sdk-config-identity"
 
 
 def canonical_absolute(value):
