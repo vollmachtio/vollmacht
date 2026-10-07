@@ -18,6 +18,9 @@ SUITES = [
                                            "DiagnosticSession.swift", "DelayedDiagnosticController.swift",
                                            "DelayedDiagnosticControllerTests.swift"]),
     ("probe-operation-state-tests", ["ProbeOperationState.swift", "ProbeOperationStateTests.swift"]),
+    ("probe-event-adapter-tests", ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift", "DiagnosticSession.swift",
+                                   "DelayedDiagnosticController.swift", "ProbeOperationState.swift",
+                                   "ProbeEventAdapter.swift", "ProbeEventAdapterTests.swift"]),
 ]
 MEASURED_SOURCES = sorted({name for _, inputs in SUITES for name in inputs})
 MEASURED_SUITES = [inputs[-1] for _, inputs in SUITES]
@@ -32,10 +35,11 @@ def compiler_target(version):
 
 def configuration(target):
     return {
-        "id": "swift-fake-suites-v5", "target": target,
+        "id": "swift-fake-suites-v6", "target": target,
         "compile_flags": ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"],
         "suites": [inputs.copy() for _, inputs in SUITES],
         "suite_compile_flags": [[], [], [], [], ["-swift-version", "6", "-strict-concurrency=complete"],
+                                ["-swift-version", "6", "-strict-concurrency=complete"],
                                 ["-swift-version", "6", "-strict-concurrency=complete"]],
         "merge": "sparse", "export": "single-merged-json", "environment": "inherited-v1",
     }
