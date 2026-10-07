@@ -12,13 +12,21 @@ import coverage_swift as runner
 
 
 SOURCE = Path(runner.__file__).resolve().parent.parent / "spikes/macos-key/swift"
+EXPECTED_SUITES = [
+    ["Profile.swift", "Tests.swift"],
+    ["Profile.swift", "Runtime.swift", "RuntimeTests.swift"],
+    ["DiagnosticPlan.swift", "DiagnosticPlanTests.swift"],
+    ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift"],
+]
+EXPECTED_BINARIES = ["profile-tests", "runtime-tests", "diagnostic-plan-tests", "diagnostic-session-tests"]
+EXPECTED_SOURCES = sorted({name for inputs in EXPECTED_SUITES for name in inputs})
 
 
 def report():
     return {
         "type": "llvm.coverage.json.export",
         "data": [{
-            "files": [{"filename": str(SOURCE / name)} for name in ("Profile.swift", "Runtime.swift")],
+            "files": [{"filename": str(SOURCE / name)} for name in EXPECTED_SOURCES],
             "functions": [{"name": "$sNativeKeyBackend.reserve", "count": 0}],
         }],
     }
@@ -27,7 +35,7 @@ def report():
 class CoverageTests(unittest.TestCase):
     def test_report_requires_expected_files_and_zero_native_execution(self):
         runner.validate_report(report(), SOURCE)
-        for mutation in ("format", "source", "native", "executed"):
+        for mutation in ("format", "source", "duplicate", "extra", "units", "native", "executed", "boolean"):
             with self.subTest(mutation=mutation):
                 value = report()
                 if mutation == "format":
@@ -36,6 +44,14 @@ class CoverageTests(unittest.TestCase):
                     value["data"][0]["files"].pop()
                 elif mutation == "native":
                     value["data"][0]["functions"] = []
+                elif mutation == "duplicate":
+                    value["data"][0]["files"].append(value["data"][0]["files"][0].copy())
+                elif mutation == "extra":
+                    value["data"][0]["files"].append({"filename": str(SOURCE / "ProbeView.swift")})
+                elif mutation == "units":
+                    value["data"].append(value["data"][0].copy())
+                elif mutation == "boolean":
+                    value["data"][0]["functions"][0]["count"] = False
                 else:
                     value["data"][0]["functions"][0]["count"] = 1
                 with self.assertRaises(ValueError):
@@ -108,8 +124,8 @@ class CoverageTests(unittest.TestCase):
                 if env is not None:
                     self.assertEqual(timeout, 15)
                     self.assertEqual(len(command), 1)
-                    self.assertIn(Path(command[0]).name, ("profile-tests", "runtime-tests"))
-                    if failure == "run":
+                    self.assertIn(Path(command[0]).name, EXPECTED_BINARIES)
+                    if failure == "run" or (failure == "session-run" and Path(command[0]).name == "diagnostic-session-tests"):
                         raise subprocess.TimeoutExpired(command, timeout)
                     if failure != "profile":
                         Path(env["LLVM_PROFILE_FILE"].replace("%p", "123")).write_bytes(b"profile")
@@ -138,11 +154,14 @@ class CoverageTests(unittest.TestCase):
                     self.assertEqual(metadata["sdk"], {"name": "macosx", "path": str(sdk), "version": "26.5", "build": "25F70"})
                     config = metadata["collector_config"]
                     self.assertEqual(config["compile_flags"], ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"])
-                    self.assertEqual(metadata["measured_suites"], ["Tests.swift", "RuntimeTests.swift"])
+                    self.assertEqual(metadata["measured_suites"], [inputs[-1] for inputs in EXPECTED_SUITES])
+                    self.assertEqual(config["id"], "swift-fake-suites-v3")
+                    self.assertEqual(config["suites"], EXPECTED_SUITES)
                     self.assertIn("ProbeView.swift", metadata["unmeasured"])
                     self.assertIn("native_keychain", metadata["unmeasured"])
                     compile_calls = [command for command, _, _ in commands if "-profile-generate" in command]
-                    self.assertEqual(len(compile_calls), 2)
+                    self.assertEqual(len(compile_calls), 4)
+                    self.assertEqual([Path(command[-1]).name for command in compile_calls], EXPECTED_BINARIES)
                     for command, inputs in zip(compile_calls, config["suites"], strict=True):
                         self.assertIn("-profile-coverage-mapping", command)
                         self.assertNotIn(str(SOURCE / "ProbeView.swift"), command)
@@ -151,9 +170,16 @@ class CoverageTests(unittest.TestCase):
                         self.assertEqual(command[command.index("-sdk") + 1], metadata["sdk"]["path"])
                         self.assertEqual([Path(value).name for value in command if value.endswith(".swift")], inputs)
                     export = [command for command, _, _ in commands if "export" in command][0]
+                    self.assertEqual(Path(export[2]).name, EXPECTED_BINARIES[0])
                     self.assertIn("-object", export)
+                    self.assertEqual([Path(export[index + 1]).name for index, argument in enumerate(export)
+                                      if argument == "-object"], EXPECTED_BINARIES[1:])
+                    executed = [Path(command[0]).name for command, _, env in commands if env is not None]
+                    self.assertEqual(executed, EXPECTED_BINARIES)
                     self.assertEqual(config["export"], "single-merged-json")
                     merge = [command for command, _, _ in commands if "merge" in command][0]
+                    self.assertEqual([Path(argument).name for argument in merge if argument.endswith(".profraw")],
+                                     [name + "-123.profraw" for name in EXPECTED_BINARIES])
                     self.assertEqual(config["merge"], "sparse")
                     self.assertIn("-sparse", merge)
             if failure in ("sdk-version", "sdk-build", "sdk-query", "tool-version"):
@@ -165,8 +191,17 @@ class CoverageTests(unittest.TestCase):
     def test_success_commands_and_metadata(self):
         self.exercise()
 
+    def test_every_declared_source_is_required_including_tests(self):
+        for name in EXPECTED_SOURCES:
+            with self.subTest(name=name):
+                value = report()
+                value["data"][0]["files"] = [item for item in value["data"][0]["files"]
+                                               if item["filename"] != str(SOURCE / name)]
+                with self.assertRaises(ValueError):
+                    runner.validate_report(value, SOURCE)
+
     def test_failures_leave_no_success_artifact_and_clean_temporary_builds(self):
-        for failure in ("compile", "run", "profile", "json", "source", "sdk-version", "sdk-build", "sdk-query", "tool-version"):
+        for failure in ("compile", "run", "session-run", "profile", "json", "source", "sdk-version", "sdk-build", "sdk-query", "tool-version"):
             with self.subTest(failure=failure):
                 self.exercise(failure)
 

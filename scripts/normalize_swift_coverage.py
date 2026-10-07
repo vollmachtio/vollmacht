@@ -7,15 +7,16 @@ import re
 import sys
 
 from coverage_compare import InvalidReport, fields, load, require, validate
-from coverage_swift import compiler_target, configuration
+from coverage_swift import MEASURED_SUITES, compiler_target, configuration
 
 
 PREFIX = "spikes/macos-key/swift/"
 SOURCES = [PREFIX + name for name in (
+    "DiagnosticPlan.swift", "DiagnosticPlanTests.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift",
     "Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
 )]
 METRICS = ["lines", "functions"]
-POLICY = "swift-fake-suites-v2-sdk-config-identity"
+POLICY = "swift-fake-suites-v3-sdk-config-identity"
 
 
 def canonical_absolute(value):
@@ -53,7 +54,7 @@ def tool_identity(metadata):
     except ValueError as error:
         raise InvalidReport("missing macOS compiler target") from error
     require(metadata["collector_config"] == configuration(target), "unsupported collector configuration")
-    require(metadata["measured_suites"] == ["Tests.swift", "RuntimeTests.swift"],
+    require(metadata["measured_suites"] == MEASURED_SUITES,
             "unexpected measured suite list")
     fields(metadata["unmeasured"], {"ProbeView.swift", "native_keychain", "touch_id"},
            "missing explicit manual coverage boundaries")

@@ -8,6 +8,16 @@ import subprocess
 import sys
 import tempfile
 
+SUITES = [
+    ("profile-tests", ["Profile.swift", "Tests.swift"]),
+    ("runtime-tests", ["Profile.swift", "Runtime.swift", "RuntimeTests.swift"]),
+    ("diagnostic-plan-tests", ["DiagnosticPlan.swift", "DiagnosticPlanTests.swift"]),
+    ("diagnostic-session-tests", ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift",
+                                  "DiagnosticSession.swift", "DiagnosticSessionTests.swift"]),
+]
+MEASURED_SOURCES = sorted({name for _, inputs in SUITES for name in inputs})
+MEASURED_SUITES = [inputs[-1] for _, inputs in SUITES]
+
 
 def compiler_target(version):
     targets = re.findall(r"^Target: ([a-zA-Z0-9_.-]+)$", version, re.MULTILINE)
@@ -18,9 +28,9 @@ def compiler_target(version):
 
 def configuration(target):
     return {
-        "id": "swift-fake-suites-v2", "target": target,
+        "id": "swift-fake-suites-v3", "target": target,
         "compile_flags": ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"],
-        "suites": [["Profile.swift", "Tests.swift"], ["Profile.swift", "Runtime.swift", "RuntimeTests.swift"]],
+        "suites": [inputs.copy() for _, inputs in SUITES],
         "merge": "sparse", "export": "single-merged-json", "environment": "inherited-v1",
     }
 
@@ -38,15 +48,16 @@ def validate_report(report, source):
     if report.get("type") != "llvm.coverage.json.export":
         raise ValueError("unexpected coverage format")
     data = report.get("data", [])
-    files = {item["filename"] for unit in data for item in unit.get("files", [])}
-    for name in ("Profile.swift", "Runtime.swift"):
-        if str(source / name) not in files:
-            raise ValueError("missing expected Swift source")
+    if not isinstance(data, list) or len(data) != 1:
+        raise ValueError("expected one merged Swift coverage unit")
+    files = [item["filename"] for unit in data for item in unit.get("files", [])]
+    if len(files) != len(set(files)) or set(files) != {str(source / name) for name in MEASURED_SOURCES}:
+        raise ValueError("missing, duplicate or unexpected Swift source")
     native = [
         function for unit in data for function in unit.get("functions", [])
         if "NativeKeyBackend" in function.get("name", "")
     ]
-    if not native or any(function.get("count") != 0 for function in native):
+    if not native or any(type(function.get("count")) is not int or function["count"] != 0 for function in native):
         raise ValueError("native backend must be represented and unexecuted")
 
 
@@ -83,7 +94,7 @@ def collect(destination):
         directory = Path(temporary)
         objects = []
         profiles = []
-        for name, inputs in zip(("profile-tests", "runtime-tests"), config["suites"], strict=True):
+        for name, inputs in zip((name for name, _ in SUITES), config["suites"], strict=True):
             binary = directory / name
             execute([
                 tools["swiftc"], *config["compile_flags"],
@@ -107,7 +118,8 @@ def collect(destination):
         ])
         report = json.loads(execute([
             tools["llvm-cov"], "export", str(objects[0]),
-            "-object", str(objects[1]), "-instr-profile", str(merged),
+            *[argument for binary in objects[1:] for argument in ("-object", str(binary))],
+            "-instr-profile", str(merged),
         ]))
         validate_report(report, source)
         metadata = {
@@ -116,7 +128,7 @@ def collect(destination):
             "versions": versions,
             "sdk": sdk,
             "collector_config": config,
-            "measured_suites": ["Tests.swift", "RuntimeTests.swift"],
+            "measured_suites": MEASURED_SUITES.copy(),
             "native_backend": "represented in coverage, required zero executions",
             "unmeasured": {
                 "ProbeView.swift": "UI is typechecked by the existing runner, not executed here",
