@@ -33,7 +33,7 @@ def fixture():
                 "sdk": {"name": "macosx", "path": "/tools/MacOSX.sdk", "version": "26.5", "build": "25F70"},
                 "collector_config": adapter.configuration("arm64-apple-macosx26.0"),
                 "measured_suites": ["Tests.swift", "RuntimeTests.swift", "DiagnosticPlanTests.swift", "DiagnosticSessionTests.swift",
-                                    "DelayedDiagnosticControllerTests.swift"],
+                                    "DelayedDiagnosticControllerTests.swift", "ProbeOperationStateTests.swift"],
                 "native_backend": "unexecuted", "limits": "collection only",
                 "unmeasured": {key: "manual gate" for key in ("ProbeView.swift", "native_keychain", "touch_id")}}
     return report, metadata
@@ -57,10 +57,11 @@ class NormalizeTests(unittest.TestCase):
         self.assertEqual(head["files"][adapter.SOURCES[0]]["lines"], {"covered": 0, "total": 10})
         self.assertTrue(compare.compare(base, head, adapter.SOURCES, adapter.SOURCES)["regressions"])
 
-    def test_scope_is_exactly_ten_sources_and_every_source_is_required(self):
+    def test_scope_is_exactly_twelve_sources_and_every_source_is_required(self):
         names = {"Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
                  "DiagnosticPlan.swift", "DiagnosticPlanTests.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift",
-                 "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift"}
+                 "DelayedDiagnosticController.swift", "DelayedDiagnosticControllerTests.swift",
+                 "ProbeOperationState.swift", "ProbeOperationStateTests.swift"}
         self.assertEqual(set(adapter.SOURCES), {adapter.PREFIX + name for name in names})
         for name in adapter.SOURCES:
             for duplicate in (False, True):
@@ -76,12 +77,12 @@ class NormalizeTests(unittest.TestCase):
                         adapter.normalize(report, metadata, ROOT)
 
     def test_old_scope_and_weakened_suite_metadata_are_rejected(self):
-        for mutation in ("v2-id", "v3-id", "v2-suites", "v3-suites", "missing-suite", "duplicate-suite", "reordered-suite"):
+        for mutation in ("v2-id", "v3-id", "v4-id", "v2-suites", "v3-suites", "v4-suites", "missing-suite", "duplicate-suite", "reordered-suite"):
             report, metadata = fixture()
-            if mutation in ("v2-id", "v3-id"):
+            if mutation in ("v2-id", "v3-id", "v4-id"):
                 metadata["collector_config"]["id"] = "swift-fake-suites-" + mutation[:2]
-            elif mutation in ("v2-suites", "v3-suites"):
-                count = 2 if mutation == "v2-suites" else 4
+            elif mutation in ("v2-suites", "v3-suites", "v4-suites"):
+                count = {"v2-suites": 2, "v3-suites": 4, "v4-suites": 5}[mutation]
                 metadata["collector_config"]["suites"] = metadata["collector_config"]["suites"][:count]
                 metadata["measured_suites"] = metadata["measured_suites"][:count]
             elif mutation == "missing-suite":
@@ -94,7 +95,7 @@ class NormalizeTests(unittest.TestCase):
                 adapter.normalize(report, metadata, ROOT)
         report, metadata = fixture()
         head = adapter.normalize(report, metadata, ROOT)
-        for version in ("v2", "v3"):
+        for version in ("v2", "v3", "v4"):
             base = copy.deepcopy(head)
             base["tool"]["policy_id"] = "swift-fake-suites-" + version + "-sdk-config-identity"
             with self.subTest(version=version), self.assertRaises(compare.InvalidReport):
@@ -149,7 +150,7 @@ class NormalizeTests(unittest.TestCase):
                 with self.assertRaises(compare.InvalidReport):
                     compare.compare(baseline, normalized, adapter.SOURCES, adapter.SOURCES)
         for mutation in ("schema", "missing-sdk-build", "empty-sdk-build", "flags", "target", "suites", "merge", "export",
-                         "missing-suite-flags", "weakened-controller-flags", "changed-original-flags"):
+                         "missing-suite-flags", "weakened-controller-flags", "weakened-operation-flags", "changed-original-flags"):
             with self.subTest(mutation=mutation):
                 changed = copy.deepcopy(metadata)
                 if mutation == "schema":
@@ -165,6 +166,8 @@ class NormalizeTests(unittest.TestCase):
                 elif mutation == "missing-suite-flags":
                     del changed["collector_config"]["suite_compile_flags"]
                 elif mutation == "weakened-controller-flags":
+                    changed["collector_config"]["suite_compile_flags"][4] = []
+                elif mutation == "weakened-operation-flags":
                     changed["collector_config"]["suite_compile_flags"][-1] = []
                 elif mutation == "changed-original-flags":
                     changed["collector_config"]["suite_compile_flags"][0] = ["-swift-version", "6"]
