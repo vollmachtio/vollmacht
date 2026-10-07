@@ -1,0 +1,207 @@
+{
+  "profile": "candidate-agent-enrollment-v1",
+  "trusted": {
+    "candidate_jwk": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+      "y": "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU"
+    },
+    "wrong_candidate_jwk": {
+      "kty": "EC",
+      "x": "aIx3Vz4TA1DnSBJiQslV0ZvuqW-52aKct000orFbfrk",
+      "y": "CIlpjRuY2ieVJ_Z9o0V9Icb1ZTfrrapbLPaQKTLI8p4",
+      "crv": "P-256"
+    },
+    "pending": {
+      "version": 1,
+      "operation": "enroll_agent",
+      "operation_id": "66666666666666666666666666666666",
+      "installation_id": "77777777777777777777777777777777",
+      "audience": "22222222222222222222222222222222",
+      "principal_id": "33333333333333333333333333333333",
+      "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+      "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+      "ceremony_id": "99999999999999999999999999999999",
+      "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+      "issued_at": 1800000060,
+      "expires_at": 1800000090
+    }
+  },
+  "proposal": {
+    "version": 1,
+    "operation": "enroll_agent",
+    "operation_id": "66666666666666666666666666666666",
+    "installation_id": "77777777777777777777777777777777",
+    "audience": "22222222222222222222222222222222",
+    "principal_id": "33333333333333333333333333333333",
+    "credential_id": "AQIDBA",
+    "registry_revision": 7,
+    "credential_revision": 3,
+    "policy_revision": 1,
+    "agent_key": {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY",
+      "y": "T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU"
+    },
+    "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+    "ceremony_id": "88888888888888888888888888888888",
+    "nonce": "FRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRU",
+    "issued_at": 1800000000,
+    "expires_at": 1800000120
+  },
+  "canonical_proposal": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"agent_key\":{\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"axfR8uEsQkf4vOblY6RA8ncDfYEt6zOg9KE5RdiYwpY\",\"y\":\"T-NC4v4af5uO5-tKfA-eFivOM1drMV7Oy7ZAaDe_UfU\"},\"audience\":\"22222222222222222222222222222222\",\"ceremony_id\":\"88888888888888888888888888888888\",\"credential_id\":\"AQIDBA\",\"credential_revision\":3,\"expires_at\":1800000120,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000000,\"nonce\":\"FRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVFRU\",\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"policy_revision\":1,\"principal_id\":\"33333333333333333333333333333333\",\"registry_revision\":7,\"version\":1}",
+  "domain_hex": "766f6c6c6d616368743a61646d696e3a656e726f6c6c2d6167656e743a763100",
+  "authorization_digest_hex": "0d12cb9be5abe5549aa0b922d73533d5e17a92d56abd1a5507bddab0f1f63ce7",
+  "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+  "protected_header": {
+    "alg": "ES256",
+    "typ": "vollmacht-agent-enrollment+jws",
+    "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+  },
+  "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-agent-enrollment+jws\"}",
+  "payload": {
+    "version": 1,
+    "operation": "enroll_agent",
+    "operation_id": "66666666666666666666666666666666",
+    "installation_id": "77777777777777777777777777777777",
+    "audience": "22222222222222222222222222222222",
+    "principal_id": "33333333333333333333333333333333",
+    "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+    "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+    "ceremony_id": "99999999999999999999999999999999",
+    "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+    "issued_at": 1800000060,
+    "expires_at": 1800000090
+  },
+  "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"22222222222222222222222222222222\",\"authorization_digest\":\"DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc\",\"ceremony_id\":\"99999999999999999999999999999999\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+  "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtYWdlbnQtZW5yb2xsbWVudCtqd3MifQ.eyJhZ2VudF9qa3QiOiJ4eDBCY0Etd01vaHc4YXRZREpPZTZwZUdNb2RrbEcyd1JIQmxYSE12bDBNIiwiYXVkaWVuY2UiOiIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRFJMTG0tV3I1VlNhb0xraTF6VXoxZUY2a3RWcXZScFZCNzNhc1BIMlBPYyIsImNlcmVtb255X2lkIjoiOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTkiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.ZZo5Wlyc7UvuaBSUnHBpnZkAfrcGJmjXzpz-5Uy4bRJP1Y5K2UjAQqyCB35NDpxpH9ch4TSDHHJm_HUATVobkw",
+  "variants": [
+    {
+      "id": "wrong-audience",
+      "protected_header": {
+        "alg": "ES256",
+        "typ": "vollmacht-agent-enrollment+jws",
+        "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+      },
+      "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-agent-enrollment+jws\"}",
+      "payload": {
+        "version": 1,
+        "operation": "enroll_agent",
+        "operation_id": "66666666666666666666666666666666",
+        "installation_id": "77777777777777777777777777777777",
+        "audience": "44444444444444444444444444444444",
+        "principal_id": "33333333333333333333333333333333",
+        "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+        "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+        "ceremony_id": "99999999999999999999999999999999",
+        "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+        "issued_at": 1800000060,
+        "expires_at": 1800000090
+      },
+      "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"44444444444444444444444444444444\",\"authorization_digest\":\"DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc\",\"ceremony_id\":\"99999999999999999999999999999999\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtYWdlbnQtZW5yb2xsbWVudCtqd3MifQ.eyJhZ2VudF9qa3QiOiJ4eDBCY0Etd01vaHc4YXRZREpPZTZwZUdNb2RrbEcyd1JIQmxYSE12bDBNIiwiYXVkaWVuY2UiOiI0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NCIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRFJMTG0tV3I1VlNhb0xraTF6VXoxZUY2a3RWcXZScFZCNzNhc1BIMlBPYyIsImNlcmVtb255X2lkIjoiOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTkiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.zs9K25seJ_5ZrKK0WE-w0POCJTO6kg1v4inPYPRjbnV4uZ8Qd98hwpR4IJglnTctqgHb2MtFbcWELOMLOQo-fA"
+    },
+    {
+      "id": "wrong-stage",
+      "protected_header": {
+        "alg": "ES256",
+        "typ": "vollmacht-agent-enrollment+jws",
+        "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+      },
+      "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-agent-enrollment+jws\"}",
+      "payload": {
+        "version": 1,
+        "operation": "enroll_agent",
+        "operation_id": "66666666666666666666666666666666",
+        "installation_id": "77777777777777777777777777777777",
+        "audience": "22222222222222222222222222222222",
+        "principal_id": "33333333333333333333333333333333",
+        "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+        "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+        "ceremony_id": "88888888888888888888888888888888",
+        "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+        "issued_at": 1800000060,
+        "expires_at": 1800000090
+      },
+      "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"22222222222222222222222222222222\",\"authorization_digest\":\"DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc\",\"ceremony_id\":\"88888888888888888888888888888888\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtYWdlbnQtZW5yb2xsbWVudCtqd3MifQ.eyJhZ2VudF9qa3QiOiJ4eDBCY0Etd01vaHc4YXRZREpPZTZwZUdNb2RrbEcyd1JIQmxYSE12bDBNIiwiYXVkaWVuY2UiOiIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRFJMTG0tV3I1VlNhb0xraTF6VXoxZUY2a3RWcXZScFZCNzNhc1BIMlBPYyIsImNlcmVtb255X2lkIjoiODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODgiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.reNr2P1r3-Q2QV0gWLEtmpZLQcWdRN4ksi6gdKNwcr8r4acp43bkICdpa3c9kusQCOMy2AJUSGBxTe2Dg4VApQ"
+    },
+    {
+      "id": "wrong-authorization-digest",
+      "protected_header": {
+        "alg": "ES256",
+        "typ": "vollmacht-agent-enrollment+jws",
+        "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+      },
+      "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-agent-enrollment+jws\"}",
+      "payload": {
+        "version": 1,
+        "operation": "enroll_agent",
+        "operation_id": "66666666666666666666666666666666",
+        "installation_id": "77777777777777777777777777777777",
+        "audience": "22222222222222222222222222222222",
+        "principal_id": "33333333333333333333333333333333",
+        "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+        "authorization_digest": "FxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxc",
+        "ceremony_id": "99999999999999999999999999999999",
+        "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+        "issued_at": 1800000060,
+        "expires_at": 1800000090
+      },
+      "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"22222222222222222222222222222222\",\"authorization_digest\":\"FxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxc\",\"ceremony_id\":\"99999999999999999999999999999999\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtYWdlbnQtZW5yb2xsbWVudCtqd3MifQ.eyJhZ2VudF9qa3QiOiJ4eDBCY0Etd01vaHc4YXRZREpPZTZwZUdNb2RrbEcyd1JIQmxYSE12bDBNIiwiYXVkaWVuY2UiOiIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRnhjWEZ4Y1hGeGNYRnhjWEZ4Y1hGeGNYRnhjWEZ4Y1hGeGNYRnhjWEZ4YyIsImNlcmVtb255X2lkIjoiOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTkiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.2xA0NlR5m3rTghLC5Zs-uzpemCenOD6QaCJhwF9IheCnHvujlpW4DuvWiLs5THoK-7OdV4a3-LbEZkVZ2kfHSA"
+    },
+    {
+      "id": "wrong-candidate",
+      "protected_header": {
+        "alg": "ES256",
+        "typ": "vollmacht-agent-enrollment+jws",
+        "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+      },
+      "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-agent-enrollment+jws\"}",
+      "payload": {
+        "version": 1,
+        "operation": "enroll_agent",
+        "operation_id": "66666666666666666666666666666666",
+        "installation_id": "77777777777777777777777777777777",
+        "audience": "22222222222222222222222222222222",
+        "principal_id": "33333333333333333333333333333333",
+        "agent_jkt": "UM-1A6583HpLd9rq4jQloxqK7zHwokdy5akkmIo-FFg",
+        "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+        "ceremony_id": "99999999999999999999999999999999",
+        "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+        "issued_at": 1800000060,
+        "expires_at": 1800000090
+      },
+      "canonical_payload": "{\"agent_jkt\":\"UM-1A6583HpLd9rq4jQloxqK7zHwokdy5akkmIo-FFg\",\"audience\":\"22222222222222222222222222222222\",\"authorization_digest\":\"DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc\",\"ceremony_id\":\"99999999999999999999999999999999\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtYWdlbnQtZW5yb2xsbWVudCtqd3MifQ.eyJhZ2VudF9qa3QiOiJVTS0xQTY1ODNIcExkOXJxNGpRbG94cUs3ekh3b2tkeTVha2ttSW8tRkZnIiwiYXVkaWVuY2UiOiIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRFJMTG0tV3I1VlNhb0xraTF6VXoxZUY2a3RWcXZScFZCNzNhc1BIMlBPYyIsImNlcmVtb255X2lkIjoiOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTkiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.JMgRYcqiVQq_h9ua71zfOWnnDv_y08f1qJr1qyxBh8xrGykH3Ly21JK34z4PsccsIL2zH1-WVr48a96VufF0rw"
+    },
+    {
+      "id": "execution-type",
+      "protected_header": {
+        "alg": "ES256",
+        "typ": "vollmacht-execution+jws",
+        "kid": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M"
+      },
+      "canonical_header": "{\"alg\":\"ES256\",\"kid\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"typ\":\"vollmacht-execution+jws\"}",
+      "payload": {
+        "version": 1,
+        "operation": "enroll_agent",
+        "operation_id": "66666666666666666666666666666666",
+        "installation_id": "77777777777777777777777777777777",
+        "audience": "22222222222222222222222222222222",
+        "principal_id": "33333333333333333333333333333333",
+        "agent_jkt": "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M",
+        "authorization_digest": "DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc",
+        "ceremony_id": "99999999999999999999999999999999",
+        "challenge": "FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY",
+        "issued_at": 1800000060,
+        "expires_at": 1800000090
+      },
+      "canonical_payload": "{\"agent_jkt\":\"xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M\",\"audience\":\"22222222222222222222222222222222\",\"authorization_digest\":\"DRLLm-Wr5VSaoLki1zUz1eF6ktVqvRpVB73asPH2POc\",\"ceremony_id\":\"99999999999999999999999999999999\",\"challenge\":\"FhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhY\",\"expires_at\":1800000090,\"installation_id\":\"77777777777777777777777777777777\",\"issued_at\":1800000060,\"operation\":\"enroll_agent\",\"operation_id\":\"66666666666666666666666666666666\",\"principal_id\":\"33333333333333333333333333333333\",\"version\":1}",
+      "proof_jws": "eyJhbGciOiJFUzI1NiIsImtpZCI6Inh4MEJjQS13TW9odzhhdFlESk9lNnBlR01vZGtsRzJ3UkhCbFhITXZsME0iLCJ0eXAiOiJ2b2xsbWFjaHQtZXhlY3V0aW9uK2p3cyJ9.eyJhZ2VudF9qa3QiOiJ4eDBCY0Etd01vaHc4YXRZREpPZTZwZUdNb2RrbEcyd1JIQmxYSE12bDBNIiwiYXVkaWVuY2UiOiIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMiIsImF1dGhvcml6YXRpb25fZGlnZXN0IjoiRFJMTG0tV3I1VlNhb0xraTF6VXoxZUY2a3RWcXZScFZCNzNhc1BIMlBPYyIsImNlcmVtb255X2lkIjoiOTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTkiLCJjaGFsbGVuZ2UiOiJGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZV0ZoWVdGaFlXRmhZIiwiZXhwaXJlc19hdCI6MTgwMDAwMDA5MCwiaW5zdGFsbGF0aW9uX2lkIjoiNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3NzciLCJpc3N1ZWRfYXQiOjE4MDAwMDAwNjAsIm9wZXJhdGlvbiI6ImVucm9sbF9hZ2VudCIsIm9wZXJhdGlvbl9pZCI6IjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2IiwicHJpbmNpcGFsX2lkIjoiMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJ2ZXJzaW9uIjoxfQ.SwffgBgyKJ-OjnqjivZEkPZxsG7p_1kod7VGznhnCfAUyafUu6iYD7ZrGSsVW3-zY3DBmHNzXeY0VpRVEcV2cw"
+    }
+  ]
+}

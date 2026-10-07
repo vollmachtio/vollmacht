@@ -92,6 +92,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/canonicalization/tests/candidate_enrollment.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/canonicalization/tests/candidate_envelope.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -222,6 +227,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/jose/tests/candidate_enrollment.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/jose/tests/candidate_envelope.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -343,6 +353,11 @@
     },
     {
       "path": "spikes/simplewebauthn/agent-vector-generator.mjs",
+      "role": "fixture_generator",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/enrollment-vector-generator.mjs",
       "role": "fixture_generator",
       "measurement": "unmeasured"
     },
