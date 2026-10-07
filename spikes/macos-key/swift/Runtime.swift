@@ -78,23 +78,57 @@ func createPersistent<B: RuntimeBackend>(_ request: KeyRequest, using backend: i
     return result
 }
 
-func preparePersistent<B: RuntimeBackend>(
+private func checkReadyRecord<B: RuntimeBackend>(
     _ request: KeyRequest, expectedPublic: Data, using backend: inout B
-) throws -> PreparedPersistentKey<B.Handle> {
-    _ = try validatePublic(expectedPublic)
+) throws {
     let record = try backend.readRecord(request)
     if record == RuntimeProfile.pending { throw RuntimeFailure.pending }
     guard record.count == RuntimeProfile.readyPrefix.count + 65,
           record.starts(with: RuntimeProfile.readyPrefix) else { throw RuntimeFailure.invalidRecord }
     guard record == RuntimeProfile.readyPrefix + expectedPublic else { throw RuntimeFailure.pinMismatch }
+}
+
+private func matchingHandle<B: RuntimeBackend>(
+    _ request: KeyRequest, expectedPublic: Data, using backend: inout B
+) throws -> B.Handle {
     let matches = try backend.keys(request)
     guard !matches.isEmpty else { throw RuntimeFailure.missing }
     guard matches.count == 1 else { throw RuntimeFailure.ambiguous }
     let publicBytes = try backend.publicBytes(matches[0])
     guard publicBytes == expectedPublic else { throw RuntimeFailure.pinMismatch }
+    return matches[0]
+}
+
+func preparePersistent<B: RuntimeBackend>(
+    _ request: KeyRequest, expectedPublic: Data, using backend: inout B
+) throws -> PreparedPersistentKey<B.Handle> {
+    _ = try validatePublic(expectedPublic)
+    try checkReadyRecord(request, expectedPublic: expectedPublic, using: &backend)
+    let handle = try matchingHandle(request, expectedPublic: expectedPublic, using: &backend)
     // Equality to the already validated point also validates the returned bytes.
     // Preparation must not sign, reserve, create, update or adopt another pin.
-    return PreparedPersistentKey(request: request, publicPin: expectedPublic, handle: matches[0])
+    return PreparedPersistentKey(request: request, publicPin: expectedPublic, handle: handle)
+}
+
+// Independent diagnostic probes only, not production authorization checks. A
+// denied record/lookup intentionally does not revoke this retained test handle.
+func diagnosePreparedRecord<B: RuntimeBackend>(
+    _ prepared: PreparedPersistentKey<B.Handle>, using backend: inout B
+) throws {
+    try checkReadyRecord(prepared.request, expectedPublic: prepared.publicPin, using: &backend)
+}
+
+func diagnosePreparedLookup<B: RuntimeBackend>(
+    _ prepared: PreparedPersistentKey<B.Handle>, using backend: inout B
+) throws {
+    // Observe the current lookup without replacing the original retained handle.
+    _ = try matchingHandle(prepared.request, expectedPublic: prepared.publicPin, using: &backend)
+}
+
+func diagnosePreparedSigning<B: RuntimeBackend>(
+    _ prepared: PreparedPersistentKey<B.Handle>, using backend: inout B
+) throws -> RuntimeEvidence {
+    try evidence(prepared.handle, publicBytes: prepared.publicPin, using: &backend)
 }
 
 func openPersistent<B: RuntimeBackend>(_ request: KeyRequest, expectedPublic: Data, using backend: inout B) throws -> RuntimeEvidence {

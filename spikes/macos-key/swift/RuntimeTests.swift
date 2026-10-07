@@ -28,6 +28,7 @@ struct FakeRuntime: RuntimeBackend {
     var publicHandles: [Int] = []
     var signedHandles: [Int] = []
     var publicOverride: Data?
+    var signatureOverride: Data?
 
     init() throws {
         var scalar = Data(repeating: 0, count: 32)
@@ -63,12 +64,100 @@ struct FakeRuntime: RuntimeBackend {
     mutating func signFixed(_ handle: Int) throws -> Data {
         try step("sign")
         signedHandles.append(handle)
+        if let signatureOverride { return signatureOverride }
         return badSignature ? Data([0]) : try softwareKey.signature(for: wrongMessage ? Data("changed".utf8) : RuntimeProfile.message).derRepresentation
     }
 }
 
 @main
 struct RuntimeTests {
+    static func diagnosticTests(request: KeyRequest, publicPin: Data, otherPin: Data) throws {
+        var seed = try FakeRuntime()
+        seed.record = RuntimeProfile.readyPrefix + publicPin
+        seed.handles = [73]
+        let prepared = try preparePersistent(request, expectedPublic: publicPin, using: &seed)
+        seed.calls = []
+        seed.publicHandles = []
+        seed.signedHandles = []
+
+        for (record, expected) in [
+            (seed.record, nil), (nil, .missing), (RuntimeProfile.pending, .pending),
+            (Data(), .invalidRecord), (RuntimeProfile.readyPrefix + otherPin, .pinMismatch),
+        ] as [(Data?, RuntimeFailure?)] {
+            var backend = seed
+            backend.record = record
+            let operation = { try diagnosePreparedRecord(prepared, using: &backend) }
+            if let expected { try rejects(expected, operation) } else { try operation() }
+            try require(backend.calls == ["read"] && backend.record == record, "record probe isolation")
+            // Even a failed record diagnostic must not gate the other probes.
+            try diagnosePreparedLookup(prepared, using: &backend)
+            _ = try diagnosePreparedSigning(prepared, using: &backend)
+            try require(backend.calls == ["read", "keys", "public", "sign"], "independent record outcome")
+        }
+        for (handles, expected) in [([99], nil), ([], .missing), ([73, 99], .ambiguous), ([73, 73], .ambiguous)] as [([Int], RuntimeFailure?)] {
+            var backend = seed
+            backend.handles = handles
+            let operation = { try diagnosePreparedLookup(prepared, using: &backend) }
+            if let expected { try rejects(expected, operation) } else { try operation() }
+            let lookupCalls = handles.count == 1 ? ["keys", "public"] : ["keys"]
+            try require(backend.calls == lookupCalls, "lookup cannot read record or sign")
+            try require(backend.publicHandles == (handles.count == 1 ? handles : []), "fresh lookup observes current key")
+            _ = try diagnosePreparedSigning(prepared, using: &backend)
+            try require(backend.calls == lookupCalls + ["sign"] && backend.signedHandles == [73]
+                        && backend.handles == handles && backend.record == seed.record, "original handle retained")
+        }
+        for actual in [otherPin, Data([4] + Array(repeating: 0, count: 64))] {
+            var backend = seed
+            backend.publicOverride = actual
+            try rejects(.pinMismatch) { try diagnosePreparedLookup(prepared, using: &backend) }
+            _ = try diagnosePreparedSigning(prepared, using: &backend)
+            try require(backend.calls == ["keys", "public", "sign"] && backend.signedHandles == [73],
+                        "lookup substitution cannot replace retained handle")
+        }
+        for stage in ["read", "keys", "public", "sign"] {
+            var backend = seed
+            backend.failAt = stage
+            if stage == "read" {
+                try rejects(.status(-1)) { try diagnosePreparedRecord(prepared, using: &backend) }
+                _ = try diagnosePreparedSigning(prepared, using: &backend)
+                try require(backend.calls == ["read", "sign"], "read denial independent of sign")
+            } else if stage == "sign" {
+                try rejects(.status(-1)) { _ = try diagnosePreparedSigning(prepared, using: &backend) }
+                try diagnosePreparedRecord(prepared, using: &backend)
+                try require(backend.calls == ["sign", "read"], "sign denial independent of record")
+            } else {
+                try rejects(.status(-1)) { try diagnosePreparedLookup(prepared, using: &backend) }
+                _ = try diagnosePreparedSigning(prepared, using: &backend)
+                try require(backend.calls == (stage == "keys" ? ["keys", "sign"] : ["keys", "public", "sign"]),
+                            "lookup denial independent of sign")
+            }
+            try require(backend.record == seed.record && backend.handles == seed.handles, "denial cannot write or retry")
+        }
+        var wrongScalar = Data(repeating: 0, count: 32)
+        wrongScalar[31] = 2
+        let wrongKey = try P256.Signing.PrivateKey(rawRepresentation: wrongScalar)
+        let wrongKeySignature = try wrongKey.signature(for: RuntimeProfile.message).derRepresentation
+        for signature in [Data(), Data([0]), Data(repeating: 0, count: 73), wrongKeySignature] {
+            var backend = seed
+            backend.signatureOverride = signature
+            try rejects(.invalidKey) { _ = try diagnosePreparedSigning(prepared, using: &backend) }
+            try require(backend.calls == ["sign"] && backend.signedHandles == [73], "invalid signature cannot trigger fallback")
+        }
+        var wrongMessage = seed
+        wrongMessage.wrongMessage = true
+        try rejects(.invalidKey) { _ = try diagnosePreparedSigning(prepared, using: &wrongMessage) }
+        try require(wrongMessage.calls == ["sign"], "original fixed message enforced")
+        var inaccessible = seed
+        inaccessible.record = nil
+        inaccessible.handles = []
+        inaccessible.failAt = "public"
+        let signed = try diagnosePreparedSigning(prepared, using: &inaccessible)
+        try require(signed.publicKey == publicPin && inaccessible.calls == ["sign"], "sign has no record/lookup prerequisite")
+        let checkedSignature = try P256.Signing.ECDSASignature(derRepresentation: signed.signature)
+        let checkedPublic = try P256.Signing.PublicKey(x963Representation: publicPin)
+        try require(checkedPublic.isValidSignature(checkedSignature, for: RuntimeProfile.message), "diagnostic signature verifies")
+    }
+
     static func preparationTests(request: KeyRequest, publicPin: Data, otherPin: Data) throws {
         var ready = try FakeRuntime()
         ready.record = RuntimeProfile.readyPrefix + publicPin
@@ -216,6 +305,7 @@ struct RuntimeTests {
         wrongScalar[31] = 2
         let wrongPublic = try P256.Signing.PrivateKey(rawRepresentation: wrongScalar).publicKey.x963Representation
         try preparationTests(request: request, publicPin: created.publicKey, otherPin: wrongPublic)
+        try diagnosticTests(request: request, publicPin: created.publicKey, otherPin: wrongPublic)
         backend.calls = []
         try rejects(.pinMismatch) { _ = try openPersistent(request, expectedPublic: wrongPublic, using: &backend) }
         try require(backend.calls == ["read"], "wrong retained pin cannot reach key")
