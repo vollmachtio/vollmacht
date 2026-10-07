@@ -14,6 +14,9 @@ SUITES = [
     ("diagnostic-plan-tests", ["DiagnosticPlan.swift", "DiagnosticPlanTests.swift"]),
     ("diagnostic-session-tests", ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift",
                                   "DiagnosticSession.swift", "DiagnosticSessionTests.swift"]),
+    ("delayed-diagnostic-controller-tests", ["Profile.swift", "Runtime.swift", "DiagnosticPlan.swift",
+                                           "DiagnosticSession.swift", "DelayedDiagnosticController.swift",
+                                           "DelayedDiagnosticControllerTests.swift"]),
 ]
 MEASURED_SOURCES = sorted({name for _, inputs in SUITES for name in inputs})
 MEASURED_SUITES = [inputs[-1] for _, inputs in SUITES]
@@ -28,9 +31,10 @@ def compiler_target(version):
 
 def configuration(target):
     return {
-        "id": "swift-fake-suites-v3", "target": target,
+        "id": "swift-fake-suites-v4", "target": target,
         "compile_flags": ["-warnings-as-errors", "-Onone", "-profile-generate", "-profile-coverage-mapping"],
         "suites": [inputs.copy() for _, inputs in SUITES],
+        "suite_compile_flags": [[], [], [], [], ["-swift-version", "6", "-strict-concurrency=complete"]],
         "merge": "sparse", "export": "single-merged-json", "environment": "inherited-v1",
     }
 
@@ -94,10 +98,11 @@ def collect(destination):
         directory = Path(temporary)
         objects = []
         profiles = []
-        for name, inputs in zip((name for name, _ in SUITES), config["suites"], strict=True):
+        for name, inputs, flags in zip((name for name, _ in SUITES), config["suites"],
+                                       config["suite_compile_flags"], strict=True):
             binary = directory / name
             execute([
-                tools["swiftc"], *config["compile_flags"],
+                tools["swiftc"], *config["compile_flags"], *flags,
                 "-sdk", sdk["path"], "-target", config["target"],
                 "-module-cache-path", str(directory / "cache"),
                 *[str(source / item) for item in inputs], "-o", str(binary),
