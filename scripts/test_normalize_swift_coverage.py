@@ -32,7 +32,7 @@ def fixture():
                              "llvm-profdata": "Apple LLVM 21.0.0", "llvm-cov": "Apple LLVM 21.0.0"},
                 "sdk": {"name": "macosx", "path": "/tools/MacOSX.sdk", "version": "26.5", "build": "25F70"},
                 "collector_config": adapter.configuration("arm64-apple-macosx26.0"),
-                "measured_suites": ["Tests.swift", "RuntimeTests.swift"],
+                "measured_suites": ["Tests.swift", "RuntimeTests.swift", "DiagnosticPlanTests.swift", "DiagnosticSessionTests.swift"],
                 "native_backend": "unexecuted", "limits": "collection only",
                 "unmeasured": {key: "manual gate" for key in ("ProbeView.swift", "native_keychain", "touch_id")}}
     return report, metadata
@@ -55,6 +55,46 @@ class NormalizeTests(unittest.TestCase):
         head = adapter.normalize(report, metadata, ROOT)
         self.assertEqual(head["files"][adapter.SOURCES[0]]["lines"], {"covered": 0, "total": 10})
         self.assertTrue(compare.compare(base, head, adapter.SOURCES, adapter.SOURCES)["regressions"])
+
+    def test_scope_is_exactly_eight_sources_and_every_source_is_required(self):
+        names = {"Profile.swift", "Runtime.swift", "RuntimeTests.swift", "Tests.swift",
+                 "DiagnosticPlan.swift", "DiagnosticPlanTests.swift", "DiagnosticSession.swift", "DiagnosticSessionTests.swift"}
+        self.assertEqual(set(adapter.SOURCES), {adapter.PREFIX + name for name in names})
+        for name in adapter.SOURCES:
+            for duplicate in (False, True):
+                with self.subTest(name=name, duplicate=duplicate):
+                    report, metadata = fixture()
+                    items = report["data"][0]["files"]
+                    selected = next(item for item in items if item["filename"] == ROOT + "/" + name)
+                    if duplicate:
+                        items.append(copy.deepcopy(selected))
+                    else:
+                        items.remove(selected)
+                    with self.assertRaises(compare.InvalidReport):
+                        adapter.normalize(report, metadata, ROOT)
+
+    def test_old_scope_and_weakened_suite_metadata_are_rejected(self):
+        for mutation in ("old-id", "old-suites", "missing-suite", "duplicate-suite", "reordered-suite"):
+            report, metadata = fixture()
+            if mutation == "old-id":
+                metadata["collector_config"]["id"] = "swift-fake-suites-v2"
+            elif mutation == "old-suites":
+                metadata["collector_config"]["suites"] = metadata["collector_config"]["suites"][:2]
+                metadata["measured_suites"] = metadata["measured_suites"][:2]
+            elif mutation == "missing-suite":
+                metadata["measured_suites"].pop()
+            elif mutation == "duplicate-suite":
+                metadata["measured_suites"].append("Tests.swift")
+            else:
+                metadata["measured_suites"].reverse()
+            with self.subTest(mutation=mutation), self.assertRaises(compare.InvalidReport):
+                adapter.normalize(report, metadata, ROOT)
+        report, metadata = fixture()
+        head = adapter.normalize(report, metadata, ROOT)
+        base = copy.deepcopy(head)
+        base["tool"]["policy_id"] = "swift-fake-suites-v2-sdk-config-identity"
+        with self.assertRaises(compare.InvalidReport):
+            compare.compare(base, head, adapter.SOURCES, adapter.SOURCES)
 
     def test_invalid_exports(self):
         for mutation in ("version", "multiple", "missing", "duplicate", "outside", "alias", "ui",

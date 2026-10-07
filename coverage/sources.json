@@ -254,12 +254,22 @@
     {
       "path": "spikes/macos-key/swift/DiagnosticPlan.swift",
       "role": "assessment_model",
-      "measurement": "unmeasured"
+      "measurement": "raw_swift_fake_tests"
     },
     {
       "path": "spikes/macos-key/swift/DiagnosticPlanTests.swift",
       "role": "test",
-      "measurement": "unmeasured"
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/DiagnosticSession.swift",
+      "role": "experiment",
+      "measurement": "raw_swift_fake_tests"
+    },
+    {
+      "path": "spikes/macos-key/swift/DiagnosticSessionTests.swift",
+      "role": "test",
+      "measurement": "raw_swift_fake_tests"
     },
     {
       "path": "spikes/macos-key/swift/Profile.swift",

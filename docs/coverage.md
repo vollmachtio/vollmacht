@@ -6,7 +6,7 @@ Coverage collection is being added without replacing existing tests. Required CI
 
 The browser test harness names the shipped source when executing it in a VM. The attribution check runs all seven existing browser tests, requires an executed record for that exact source, and rejects anonymous VM records. This is an attribution check, not a line or branch coverage threshold.
 
-On macOS, `scripts/coverage_swift.py` compiles and executes the two fake-only Swift suites with the selected Apple toolchain's coverage instrumentation. It exports LLVM JSON and tool metadata. Both `Profile.swift` and `Runtime.swift` must appear, and native-backend functions must be represented with zero executions. A missing report, missing expected source, or unexpectedly executed native backend fails the collector. The original noninstrumented runner and UI typecheck remain mandatory.
+On macOS, `scripts/coverage_swift.py` compiles and executes four fake-only Swift suites with the selected Apple toolchain's coverage instrumentation: profiles, runtime, diagnostic plan and diagnostic session. It exports LLVM JSON and tool metadata. All eight implementation/test source files must appear exactly once, and native-backend functions must be represented with zero executions. A missing report, missing or duplicate expected source, unexpected source, or executed native backend fails the collector. The original noninstrumented runner and UI typecheck remain mandatory. The expanded scope uses configuration and normalization policy v3; old v2 reports are not interchangeable with it. See the [normalization profile](swift-coverage-normalization.md).
 
 Run the collector with a fresh output directory:
 
