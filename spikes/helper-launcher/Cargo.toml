@@ -12,7 +12,7 @@ publish.workspace = true
 libc = "=0.2.189"
 # Used by the fake-helper test fixture, not by the launcher executable.
 vollmacht-helper-probe = { version = "=0.1.0-dev", path = "../helper-protocol" }
-serde_json = "=1.0.151"
+serde_json = "=1.0.154"
 
 [dev-dependencies]
 base64 = { version = "=0.23.1", default-features = false, features = ["std"] }
