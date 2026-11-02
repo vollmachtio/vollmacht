@@ -66,7 +66,7 @@ static PROVIDER: CryptoProvider = CryptoProvider {
     key_utils: KeyUtils::new_unimplemented(),
 };
 
-fn verify_actual_input(compact: &str, public: &PKey<Public>) {
+fn signature_valid(compact: &str, public: &PKey<Public>) -> bool {
     let (input, encoded_signature) = compact.rsplit_once('.').unwrap();
     let signature = B64.decode(encoded_signature).unwrap();
     assert_eq!(signature.len(), 64);
@@ -79,14 +79,27 @@ fn verify_actual_input(compact: &str, public: &PKey<Public>) {
     .unwrap();
     let mut verifier = Verifier::new(MessageDigest::sha256(), public).unwrap();
     verifier.update(input.as_bytes()).unwrap();
-    assert!(verifier.verify(&der).unwrap());
+    verifier.verify(&der).unwrap()
+}
+
+fn verify_actual_input(compact: &str, public: &PKey<Public>) {
+    assert!(signature_valid(compact, public));
+    let (_, encoded_signature) = compact.rsplit_once('.').unwrap();
+    let signature = B64.decode(encoded_signature).unwrap();
+    let der = EcdsaSig::from_private_components(
+        BigNum::from_slice(&signature[..32]).unwrap(),
+        BigNum::from_slice(&signature[32..]).unwrap(),
+    )
+    .unwrap()
+    .to_der()
+    .unwrap();
     let mut altered = Verifier::new(MessageDigest::sha256(), public).unwrap();
     altered.update(b"different signing input").unwrap();
     assert!(!altered.verify(&der).unwrap());
 }
 
 #[test]
-fn custom_signer_works_but_public_encoder_does_not_preserve_canonical_header() {
+fn custom_signer_preserves_current_profile_but_not_historical_canonical_header() {
     let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
     let private = PKey::from_ec_key(EcKey::generate(&group).unwrap()).unwrap();
     let public = PKey::public_key_from_der(&private.public_key_to_der().unwrap()).unwrap();
@@ -153,4 +166,51 @@ fn custom_signer_works_but_public_encoder_does_not_preserve_canonical_header() {
     assert_eq!(mismatched_header["kid"], "unbound-other-key");
     verify_actual_input(&mismatched, &public);
     assert_eq!(SEEN.lock().unwrap().len(), 3);
+
+    // Current independent vectors deliberately use deterministic typ,alg,kid.
+    // Parse their canonical strings: this does not make encode a JCS encoder.
+    let current: serde_json::Value = serde_json::from_str(include_str!(
+        "../../canonicalization/fixtures/candidate-profile-vector.json"
+    ))
+    .unwrap();
+    let wrong_private = PKey::from_ec_key(EcKey::generate(&group).unwrap()).unwrap();
+    let wrong_public =
+        PKey::public_key_from_der(&wrong_private.public_key_to_der().unwrap()).unwrap();
+    for name in ["issuer", "execution", "possession"] {
+        let artifact = &current[name];
+        let header_bytes = artifact["header_bytes"].as_str().unwrap();
+        let canonical = artifact["canonical_payload"].as_str().unwrap();
+        let header: Header = serde_json::from_str(header_bytes).unwrap();
+        let claims: serde_json::Value = serde_json::from_str(canonical).unwrap();
+        assert_eq!(claims, artifact["payload"]);
+        let profile = if name == "issuer" {
+            &claims["payload"]["crypto_profile"]
+        } else {
+            &claims["crypto_profile"]
+        };
+        assert_eq!(profile, "vollmacht-local-es256-v1");
+        let before = SEEN.lock().unwrap().len();
+        let compact = jsonwebtoken::encode(&header, &claims, &handle).unwrap();
+        let segments: Vec<_> = compact.split('.').collect();
+        assert_eq!(segments.len(), 3);
+        assert_eq!(B64.decode(segments[0]).unwrap(), header_bytes.as_bytes());
+        assert_eq!(B64.decode(segments[1]).unwrap(), canonical.as_bytes());
+        let input = format!("{}.{}", B64.encode(header_bytes), B64.encode(canonical));
+        let seen = SEEN.lock().unwrap();
+        assert_eq!(seen.len(), before + 1);
+        assert_eq!(seen[before], input.as_bytes());
+        drop(seen);
+        verify_actual_input(&compact, &public);
+        assert!(!signature_valid(&compact, &wrong_public));
+
+        assert_eq!(canonical.matches("vollmacht-local-es256-v1").count(), 1);
+        let changed = canonical.replace("vollmacht-local-es256-v1", "vollmacht-local-es256-v0");
+        let tampered = format!("{}.{}.{}", segments[0], B64.encode(changed), segments[2]);
+        assert!(!signature_valid(&tampered, &public));
+        let mut signature = B64.decode(segments[2]).unwrap();
+        signature[0] ^= 1;
+        let tampered = format!("{}.{}.{}", segments[0], segments[1], B64.encode(signature));
+        assert!(!signature_valid(&tampered, &public));
+    }
+    assert_eq!(SEEN.lock().unwrap().len(), 6);
 }
