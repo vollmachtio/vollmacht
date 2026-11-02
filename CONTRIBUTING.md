@@ -18,6 +18,10 @@ Independent tasks may run in parallel with explicit file ownership. Keep separat
 
 The maintainer has authorized automatic merging of in-plan PRs after review findings are resolved and all required checks pass on the exact head revision. Pause for clarification, material plan deviations, new permissions or user-assisted hardware work. Automatic merging does not waive these gates or authorize live GitHub demo operations, credential changes or Keychain mutations. If branch protections or another required review block merging, report the blocker rather than bypassing it.
 
+Keep incomplete PRs and PRs awaiting a maintainer decision, permission, review or required manual evidence in draft, with the blocker stated in the description. Do not mark them ready until that gate is resolved. A PR may document a deferred gate without being blocked by it only when that gate is outside the PR's acceptance scope; never imply that deferred evidence has passed.
+
+For ready, in-plan PRs with completed independent adversarial review and no unresolved approval gates, enable GitHub auto-merge as soon as only required CI remains. Use normal protected squash merging, never an administrative bypass. Auto-merge must retain all required checks and current-base requirements. The coordinator follows through on branch updates, failed checks and integration conflicts, verifies that the reviewed diff remains intact, obtains review for material changes, and confirms the eventual merge. If new changes or blockers invalidate review or authorization, disable auto-merge and return the PR to draft before proceeding.
+
 ## Implementation conventions
 
 Use small Rust modules with explicit trust boundaries and typed errors. Keep cryptography behind maintained libraries; never implement primitives. Prefer a minimal dependency graph. Document any unsafe Rust or native FFI and isolate it behind a narrow interface.
