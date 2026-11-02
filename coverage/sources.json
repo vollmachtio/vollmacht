@@ -257,6 +257,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/jose/tests/jsonwebtoken_verifier.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/macos-key/src/durable.rs",
       "role": "experiment",
       "measurement": "unmeasured"
