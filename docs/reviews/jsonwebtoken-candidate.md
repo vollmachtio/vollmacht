@@ -1,6 +1,6 @@
 # jsonwebtoken candidate adversarial review
 
-Date: 2026-11-01. Reviewer: independent agent `/root/adversarial_roadmap_november`, separate from author `dependency_triage`. Scope: four candidate-assessment files, compared with HEAD `2607b5229450efd38db2e9b34dac76b2b84e5723`. These changes belong in their own PR, not the provider-contract change. No production library selection or protocol acceptance is part of this review.
+Date: 2026-11-01. Reviewer: independent agent `/root/adversarial_roadmap_november`, separate from author `dependency_triage`. Initial scope: four candidate-assessment files, compared with HEAD `2607b5229450efd38db2e9b34dac76b2b84e5723`. A subsequent two-file delta against `9061c8d6ee9a45da8d541f7800c1ffe94d4c0566` is reviewed below; the manifest records the resulting source bytes. These changes belong in their own PR, not the provider-contract change. No production library selection or protocol acceptance is part of this review.
 
 ## Reviewed source identity
 
@@ -8,8 +8,8 @@ Date: 2026-11-01. Reviewer: independent agent `/root/adversarial_roadmap_novembe
 | :--- | :--- |
 | `spikes/jose/Cargo.toml` | `589a51b9abcc4b602631eebd3e61af7b4ec73b27176a92f0a1c07462122c957a` |
 | `spikes/jose/Cargo.lock` | `67948818b92c831b87fbb90b578e9f981449445ca417fcfe5421dfff88f6bff7` |
-| `spikes/jose/tests/jsonwebtoken_candidate.rs` | `bb819a773f6be15782e5798cb01c5eac32190e4392d925946a8f2dd445d7dc62` |
-| `spikes/jose/JSONWEBTOKEN.md` | `bb414019686ac9d5dab51122dcc5b022f80010c9094756eaa67adea2c50a673e` |
+| `spikes/jose/tests/jsonwebtoken_candidate.rs` | `d51f3b248f5bb82f46a9a2dfb4462374e64ab6366076acccc739071fd52a25c4` |
+| `spikes/jose/JSONWEBTOKEN.md` | `2c20d68bba0bfea34f34c2df21ab78bdb04502995f305a89cd81b83a80d40e18` |
 
 ## Findings and disposition
 
@@ -24,7 +24,19 @@ No actionable findings or unresolved blockers identified in this bounded assessm
 - The signer hashes the received signing input once through OpenSSL and converts the generated signature to fixed-width ES256 form. Verification reconstructs DER for a public-key-only verifier and checks both the original and altered input. The document correctly limits independence to jsonwebtoken serialization, not the shared OpenSSL provider.
 - Unknown, empty and extended handles plus ES384 cannot reach the signer; the final callback count checks this. The opaque handle is explicitly test routing, not a native key API or a private-key confinement claim. Only an ephemeral software key is generated; no production key export or hardware access occurs.
 - One test in one integration-test executable owns the global key and installed provider. Reinstallation rejection is checked; other integration-test binaries have separate process state. Unsupported verifier/JWK functions cannot silently provide a production fallback.
-- No existing suite or check is removed. Full nested payload serialization, generic JWT decoding and profile enforcement remain explicitly outside this failed-prerequisite assessment; adding them is not required to establish the demonstrated header incompatibility.
+- No existing suite or check is removed. The initial assessment did not cover nested payload serialization; the bounded follow-up below adds one fixture, not general canonicalization or production profile enforcement. Generic JWT decoding remains outside scope.
+
+## Follow-up delta review
+
+Reviewed changes to the assessment test and its documentation against `9061c8d6ee9a45da8d541f7800c1ffe94d4c0566`. No actionable finding or blocker identified. Manifest and lockfile hashes remain unchanged.
+
+The added payload expectation comes from the existing independently generated `candidate-envelope-vector.json` canonical string, not a new expectation computed by the candidate encoder. The test first parses that canonical string, checks semantic agreement with the fixture envelope, then compares emitted payload bytes and callback signing input exactly. The protected header still demonstrably differs from the canonical fixture. Documentation correctly avoids claiming that arbitrary input map order is canonicalized or that this one ASCII/integer fixture establishes full JCS conformance.
+
+The changed `kid` observation is explicit and accurate: the same configured ephemeral signer signs a header with a different claimed identity, and public-key verification still succeeds. This establishes the need for application-level key/identity binding, not trust in that claimed key ID. Re-signing fixture payload bytes with this unrelated ephemeral key does not validate the fixture's issuer authority or retained evidence.
+
+The extracted verification helper retains exact-input signature checking and altered-input rejection for every successful signing case. The final callback count becomes three only after the initial invalid-handle/algorithm attempts have already been checked not to sign. Global provider setup remains a single test in its own integration-test executable.
+
+Reference fixture SHA-256: `7e73628c2242a17a80f4b3cd0959a67c15924294e991aaee2ff8bfb48cc02e47`. Independently reran `python3 scripts/check-jose.py` after the delta: formatting, Clippy and all 21 tests passed. The two-file whitespace diff check also passed. No authored source was edited, and no broader decoder or dependency re-audit is claimed for this delta.
 
 ## Independent validation
 

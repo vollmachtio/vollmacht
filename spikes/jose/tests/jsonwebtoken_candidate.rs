@@ -12,7 +12,7 @@ use openssl::{
     ecdsa::EcdsaSig,
     hash::MessageDigest,
     nid::Nid,
-    pkey::{PKey, Private},
+    pkey::{PKey, Private, Public},
     sign::{Signer, Verifier},
 };
 use std::sync::{Mutex, OnceLock};
@@ -66,6 +66,25 @@ static PROVIDER: CryptoProvider = CryptoProvider {
     key_utils: KeyUtils::new_unimplemented(),
 };
 
+fn verify_actual_input(compact: &str, public: &PKey<Public>) {
+    let (input, encoded_signature) = compact.rsplit_once('.').unwrap();
+    let signature = B64.decode(encoded_signature).unwrap();
+    assert_eq!(signature.len(), 64);
+    let der = EcdsaSig::from_private_components(
+        BigNum::from_slice(&signature[..32]).unwrap(),
+        BigNum::from_slice(&signature[32..]).unwrap(),
+    )
+    .unwrap()
+    .to_der()
+    .unwrap();
+    let mut verifier = Verifier::new(MessageDigest::sha256(), public).unwrap();
+    verifier.update(input.as_bytes()).unwrap();
+    assert!(verifier.verify(&der).unwrap());
+    let mut altered = Verifier::new(MessageDigest::sha256(), public).unwrap();
+    altered.update(b"different signing input").unwrap();
+    assert!(!altered.verify(&der).unwrap());
+}
+
 #[test]
 fn custom_signer_works_but_public_encoder_does_not_preserve_canonical_header() {
     let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).unwrap();
@@ -90,21 +109,7 @@ fn custom_signer_works_but_public_encoder_does_not_preserve_canonical_header() {
     assert_eq!(B64.decode(parts[1]).unwrap(), PAYLOAD);
     let input = format!("{}.{}", B64.encode(OBSERVED_HEADER), B64.encode(PAYLOAD));
     assert_eq!(*SEEN.lock().unwrap(), vec![input.as_bytes().to_vec()]);
-    let signature = B64.decode(parts[2]).unwrap();
-    assert_eq!(signature.len(), 64);
-    let der = EcdsaSig::from_private_components(
-        BigNum::from_slice(&signature[..32]).unwrap(),
-        BigNum::from_slice(&signature[32..]).unwrap(),
-    )
-    .unwrap()
-    .to_der()
-    .unwrap();
-    let mut verifier = Verifier::new(MessageDigest::sha256(), &public).unwrap();
-    verifier.update(input.as_bytes()).unwrap();
-    assert!(verifier.verify(&der).unwrap());
-    let mut altered = Verifier::new(MessageDigest::sha256(), &public).unwrap();
-    altered.update(b"different signing input").unwrap();
-    assert!(!altered.verify(&der).unwrap());
+    verify_actual_input(&compact, &public);
 
     // Neither an unknown handle nor a different algorithm may reach this signer.
     for bad in [b"unknown".as_slice(), b"", b"fixture-key-handle-extra"] {
@@ -113,4 +118,39 @@ fn custom_signer_works_but_public_encoder_does_not_preserve_canonical_header() {
     header.alg = Algorithm::ES384;
     assert!(jsonwebtoken::encode(&header, &claims, &handle).is_err());
     assert_eq!(SEEN.lock().unwrap().len(), 1);
+
+    // Existing independently generated fixture supplies the expected payload
+    // bytes. Parse those bytes, not the deliberately noncanonical envelope map.
+    let fixture: serde_json::Value = serde_json::from_str(include_str!(
+        "../../canonicalization/fixtures/candidate-envelope-vector.json"
+    ))
+    .unwrap();
+    let canonical = fixture["canonical_envelope"].as_str().unwrap();
+    let envelope: serde_json::Value = serde_json::from_str(canonical).unwrap();
+    assert_eq!(envelope, fixture["envelope"]);
+    header = serde_json::from_value(fixture["protected_header"].clone()).unwrap();
+    let compact = jsonwebtoken::encode(&header, &envelope, &handle).unwrap();
+    let segments: Vec<_> = compact.split('.').collect();
+    assert_eq!(segments.len(), 3);
+    const ENVELOPE_HEADER: &[u8] = br#"{"typ":"vollmacht-mandate+jws","alg":"ES256","kid":"11111111111111111111111111111111"}"#;
+    assert_eq!(B64.decode(segments[0]).unwrap(), ENVELOPE_HEADER);
+    assert_ne!(
+        B64.decode(segments[0]).unwrap(),
+        fixture["canonical_header"].as_str().unwrap().as_bytes()
+    );
+    assert_eq!(B64.decode(segments[1]).unwrap(), canonical.as_bytes());
+    let expected_input = format!("{}.{}", B64.encode(ENVELOPE_HEADER), B64.encode(canonical));
+    assert_eq!(SEEN.lock().unwrap()[1], expected_input.as_bytes());
+    verify_actual_input(&compact, &public);
+
+    // The factory receives alg and handle, NOT kid. A wrong claimed kid still
+    // signs with the same key. A production caller must bind these separately.
+    header.kid = Some("unbound-other-key".into());
+    let mismatched = jsonwebtoken::encode(&header, &envelope, &handle).unwrap();
+    let mismatched_header: serde_json::Value =
+        serde_json::from_slice(&B64.decode(mismatched.split('.').next().unwrap()).unwrap())
+            .unwrap();
+    assert_eq!(mismatched_header["kid"], "unbound-other-key");
+    verify_actual_input(&mismatched, &public);
+    assert_eq!(SEEN.lock().unwrap().len(), 3);
 }
