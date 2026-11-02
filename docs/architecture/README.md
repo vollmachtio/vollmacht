@@ -1,8 +1,10 @@
 # P06 candidate architecture
 
-Status: **PROPOSED**, 2026-10-01. This package prepares P06 in parallel with P04b. It does not accept an ADR, freeze a protocol, complete P04/P06, or authorize P07 implementation. Existing experiments remain experiments. Read the [design baseline](../design-baseline.md), [helper assessment](../helper-assessment.md) and [candidate contract](mandate-contract.md) together.
+Status: **PROPOSED**, revised 2026-11-01. The maintainer approved separating portable contract acceptance from deployment qualification. This changes sequencing, not the acceptance status of these ADR candidates: it does not freeze a protocol, complete P04/P06, or authorize P07 implementation today. Existing experiments remain experiments. Read the [design baseline](../design-baseline.md), [helper assessment](../helper-assessment.md) and [candidate contract](mandate-contract.md) together.
 
 Follow-up proposals cover [trusted enrollment and recovery](enrollment.md), the [deployment/bootstrap decision ledger](deployment-bootstrap.md) and [GitHub merge preconditions](github-preconditions.md). The maintainer accepted the limited disposable-repository no-retargeting assumption for the first live demo on 2026-10-03; its safeguards remain unimplemented. This does not accept P06 or waive the remaining gates.
+
+On 2026-11-01 the maintainer selected an isolated agent VM with the executor and approval UI on the host as the reference design direction. The concrete VM, communication path, shared-resource restrictions and bootstrap mechanism still require design and review. This selects neither a qualified implementation nor permission to configure a VM or change the host.
 
 ## ADR candidate 1: ownership and evidence
 
@@ -34,22 +36,37 @@ Pending ceremonies and outstanding execution challenges do not survive process r
 
 ## Evidence and acceptance gates
 
-| Gate | Required evidence before acceptance | Current boundary |
-| :--- | :--- | :--- |
-| Helper architecture | Explicit acceptance of trusted helper; complete library checks, launch/runtime integrity plan, registration design | Assertion experiments support feasibility; no production enrollment |
-| P04b | Restart lookup, denied access, locked-device behavior and signed identity/entitlement matrix on supported Mac | Ephemeral P04a success does not establish durability or access isolation |
-| Canonical contract | Independent exact byte/hash/signature vectors and parser limits; resolve candidate details below | Documented candidate, no frozen vectors |
-| Standards | Refresh dated source register and mappings before accepting P06 | See the dated [source register](../standards-sources.md); no draft compliance claim |
-| State/enforcement | Crash/concurrency/rollback tests, controlled GitHub credential, current API precondition assessment | Implementation follows P06; not supplied by signing or helper success |
+P06 now has two separately recorded acceptance decisions: P06a portable contract acceptance and P06b deployment qualification. Neither is accepted by this revision. A portable freeze permits implementation against a reviewed interface; it does not declare that a real deployment protects that interface.
 
-P04b code and software tests can proceed concurrently with document review. Hardware identity, entitlement, restart and denial claims require actual results. P07 starts only after a follow-up accepted P06 change records the gate results and frozen vectors. Packaging can remain a documented release gate, but a usable protected issuer-key path cannot be presumed from temporary signing.
+| Gate | Required evidence before acceptance | What acceptance permits |
+| :--- | :--- | :--- |
+| P06a portable contract | Accepted ownership/evidence ADRs, exact schema and independent vectors, maintained-library assessment, enrollment and state/provider contracts, dated standards mapping | P07 and subsequent portable implementation, including test-only providers and a simulated executor |
+| P06b deployment qualification | Accepted concrete isolation/bootstrap design, demonstrated agent denial of credentials/state/admin/runtime access, qualified real issuer provider, applicable physical P04b results | Real-provider operation and live-demo claims only after their integration and operation-specific gates also pass |
+| Integrated state/enforcement | Crash/concurrency/restart/revocation tests, deadline checks, consumed-state retention and no automatic write retry | Milestone C acceptance; not implied by either document freeze or signature success |
+| Live demo and release | Qualified deployment plus integrated browser/issuer evidence, controlled GitHub credential and current API precondition assessment; release additionally needs packaging/onboarding integrity | Milestone D live MVP and then milestone E experimental release, not GA |
+
+Milestone A owns the portable decision and reference deployment design. Milestone B delivers the integrated simulated flow after the portable freeze; native qualification can continue alongside B and C. D and E cannot inherit protection claims from fake providers. Hardware identity, entitlement, restart and denial claims require actual results. A screen-lock observation alone does not establish Keychain lock behavior.
+
+Test-only providers must be unmistakably scoped to tests or an explicitly simulated integration harness, use disposable synthetic identities/state, and have no live write adapter or real GitHub credential path. They are not a runtime fallback when a real provider fails. Simulation validates orchestration, not OS isolation, protected storage, physical user verification or a live merge. The issuer-signed envelope and per-operation WebAuthn evidence remain the candidate design; no signature layer is removed here.
+
+### Remaining portable decisions and next bounded task
+
+The next bounded task is a P06a portable acceptance packet, not production implementation. It must resolve or explicitly defer unsupported features with corresponding denial behavior:
+
+1. Select and assess maintained JCS/JOSE implementations; freeze parser limits, ES256 encodings, domain-separated payload/envelope/agent proof fields and independently generated byte/hash/signature vectors from [the candidate contract](mandate-contract.md).
+2. Accept the trusted-helper boundary and exact verification interfaces. Resolve signed-client-data ambiguity handling and retained assertion re-verification against original counter/backup context, without repeatedly mutating registry counters. Specify failure behavior and credential-ID equality at registration ingestion.
+3. Freeze the minimum bootstrap, credential activation, agent enrollment and disable interfaces and administrative proof vectors. Decide which replacement/rotation proposals are deferred and rejected, rather than requiring their implementation for MVP. No caller-supplied trust roots or implicit enrollment.
+4. Specify provider results and transaction invariants for issuer identity, installation anchor, registry revisions, pending ceremonies, execution challenges and durable reservations. Define bootstrap phase ordering and read-only reconciliation using abstract provider operations; physical storage mechanisms remain deployment qualification work. No assumed atomic transaction across providers.
+5. Record the exact supported operation, display and TTL profile, the accepted disposable-repository no-retargeting limitation, and current standards mappings. Identify test-only substitutions and every claim they cannot support.
+
+The packet needs independent adversarial review and an explicit acceptance record naming the frozen documents/vectors and permitted implementation scope. A remaining ambiguity in one of these security contracts is a blocker, not permission for an implementation to invent a default. Later contract changes require reviewed revisions and updated vectors. This is the gate for P07; P04b no longer blocks that portable freeze solely because physical qualification is pending.
 
 ## Decisions and who can settle them
 
 | Question | Proposed default | How to settle |
 | :--- | :--- | :--- |
 | Helper trust | Accept reviewed SimpleWebAuthn as trusted verifier, not independently verified by Rust | Architecture/adversarial review; ask user if this changes desired trust boundary |
-| Durable issuer identity | Protected non-exportable Apple P-256 path, no silent software fallback | P04b physical evidence; user choice only if fallback or new distribution requirement is necessary |
+| Durable issuer identity | Protected non-exportable Apple P-256 path remains the candidate real provider, no silent software fallback | Portable review defines required provider semantics; P04b qualifies the real provider. Changing protection requirements or selecting an alternative requires a separate reviewed decision |
 | Signing identity availability | No assumption that a paid developer identity or entitlements are available | P04b inventory; ask before account/purchase/signing changes |
 | Agent algorithm and lifetime | ES256; 120-second default, 300-second maximum | P06 review and vectors, within baseline scope |
 | Restart recovery | Invalidate unreserved approvals; retain consumed state | P06 review and later crash tests; no manual reapproval bypass |
