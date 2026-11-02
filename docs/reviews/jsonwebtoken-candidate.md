@@ -40,6 +40,12 @@ Reference fixture SHA-256: `7e73628c2242a17a80f4b3cd0959a67c15924294e991aaee2ff8
 
 ## Independent validation
 
+### Coverage inventory correction
+
+Independently reviewed the one-entry `coverage/sources.json` delta against `2e691f3490aaae1211ec5581df70c280a728a9ef`. SHA-256 of the reviewed coverage file: `cb9abf0af9ef4986cb3a97cfb41e3f42bc90b70353480188cf44c39c98e53711`. The new Rust integration-test source is truthfully classified as `test` and `unmeasured`, matching the neighboring JOSE tests. This adds missing source accounting; it does not exclude a source, manufacture measurements or reduce a coverage threshold. No actionable finding or blocker identified.
+
+Ran `python3 scripts/coverage_inventory.py` successfully: 105 sources accounted for, including 46 tests; measurement totals are 88 unmeasured, 16 raw Swift fake-test and one attribution-only source. Independently ran the coverage-inventory unit suite: all nine tests passed. The coverage-file whitespace diff check passed. These checks establish inventory completeness, not measured Rust coverage or satisfaction of the release coverage-enforcement gate.
+
 Ran `python3 scripts/check-jose.py` successfully: formatting check, all-target Clippy with warnings denied, and all 21 integration tests passed. This includes the 20 pre-existing tests and the new bounded assessment. Inspected the offline locked feature tree for jsonwebtoken; it appears only under the isolated spike dev dependency. The manifest/lockfile whitespace diff check passed.
 
 The author separately reported an isolated cargo-deny check passing. This reviewer did not independently rerun the advisory scan, and passing tests do not establish absence of vulnerabilities. Full required dependency checks and exact integrated-head CI remain merge gates.
