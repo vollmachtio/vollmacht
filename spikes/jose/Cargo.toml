@@ -11,6 +11,7 @@ description = "Isolated JOSE signing-interface assessment, not a mandate issuer"
 
 [dev-dependencies]
 josekit = "=0.10.3"
+jsonwebtoken = { version = "=11.1.0", default-features = false }
 openssl = "=0.10.81"
 base64 = "=0.21.7"
 serde_json = "=1.0.151"
