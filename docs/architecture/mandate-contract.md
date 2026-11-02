@@ -17,6 +17,7 @@ Exact top-level fields:
 | Field | Candidate rule |
 | :--- | :--- |
 | `version` | Integer `1` |
+| `crypto_profile` | Literal `vollmacht-local-es256-v1`, equal to trusted installation policy; see [authenticated cryptographic profiles](crypto-profiles.md) |
 | `mandate_id` | Fresh `id` |
 | `nonce` | `b64(32)` |
 | `issuer_id`, `audience` | Local registered `id`; audience identifies one executor/state authority, not a URL |
@@ -64,13 +65,13 @@ Commit counter/backup updates once at issuance with a serialized credential-revi
 
 ## Agent execution proof
 
-Agent submits a separate compact ES256 JWS. Exact protected header follows the same deterministic byte profile: `typ: "vollmacht-execution+jws"`, `alg: "ES256"`, then `kid` equal to enrolled `agent_jkt`. Exact canonical payload: `version: 1`, `mandate_digest`, `operation_digest`, `envelope_digest`, `audience`, `challenge`, `issued_at`, `expires_at`. All digests/challenge are `b64(32)`; audience equals mandate audience. `envelope_digest = SHA-256(UTF8("vollmacht:envelope:v1") || 0x00 || JCS(envelope))`, independent of potentially nonunique issuer signature bytes.
+Agent submits a separate compact ES256 JWS. Exact protected header follows the same deterministic byte profile: `typ: "vollmacht-execution+jws"`, `alg: "ES256"`, then `kid` equal to enrolled `agent_jkt`. Exact canonical payload: `version: 1`, `crypto_profile: "vollmacht-local-es256-v1"`, `mandate_digest`, `operation_digest`, `envelope_digest`, `audience`, `challenge`, `issued_at`, `expires_at`. The profile must equal the approved payload and trusted pending context; no default is inferred for a missing field. All digests/challenge are `b64(32)`; audience equals mandate audience. `envelope_digest = SHA-256(UTF8("vollmacht:envelope:v1") || 0x00 || JCS(envelope))`, independent of potentially nonunique issuer signature bytes.
 
 Executor generates a fresh random challenge, bound in pending state to all three digests, audience and agent key. Lifetime is at most 30 seconds and no later than mandate expiry; timestamps and monotonic checks follow the approval rules. Proof times must lie within that pending lifetime. Maximum compact proof is 8,192 bytes. Verify proof using registry key, never a header-supplied key. Consume its challenge in the reservation transaction. Failed proof attempts consume that pending challenge; a fresh challenge may be requested only while the mandate remains approved and unexpired, subject to rate limits. Artifact theft without the enrolled agent key does not authorize execution.
 
 ## Verification and errors
 
-1. Bound and strictly parse JWS, header, envelope and payload. Check supported version/type/algorithm, exact deterministic header bytes, canonical payload bytes, size and time.
+1. Bound and strictly parse JWS, header, envelope and payload. Check supported schema version and exact `crypto_profile` against trusted policy, then its pinned type/algorithm/key-role mapping, exact deterministic header bytes, canonical payload bytes, size and time. Never choose an algorithm/provider from an untrusted profile or header or fall back to an old profile.
 2. Resolve enabled issuer and trusted local approval record. Verify issuer signature; match stored mandate/envelope digests. Resolve principal, credential, agent and audience independently.
 3. Recompute challenge and verify raw evidence through the trusted helper, using stored original counter context. Recheck all registry revisions after helper completion. A helper error is denial, never issuer-only fallback.
 4. Verify agent proof and bound execution challenge. Re-evaluate current policy; revision mismatch requires new approval. Policy can narrow, never widen. Resolve fresh GitHub metadata and check exact approved operation, including fixture marker for a live demo.

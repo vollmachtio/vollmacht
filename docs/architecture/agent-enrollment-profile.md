@@ -15,6 +15,7 @@ Rust constructs proposal `A` only after a valid local `enroll_agent` administrat
 | Field | Required value |
 | :--- | :--- |
 | `version` | Integer `1` |
+| `crypto_profile` | Literal `vollmacht-local-es256-v1`, selected from trusted installation policy, not candidate input; see [cryptographic profiles](crypto-profiles.md) |
 | `operation` | Literal `enroll_agent` |
 | `operation_id` | Fresh `id`, bound to the capability's one operation |
 | `installation_id` | Existing installation `id` |
@@ -45,7 +46,7 @@ The stage order is `current_credential_authorization â†’ candidate_possession â†
 
 First verify a fresh assertion by the exact enabled credential against `authorization_digest`, using the existing raw-evidence field bounds and complete trusted-helper checks: expected challenge/origin/RP, signature, UP/UV, credential and user-handle association, counter and backup consistency, and the selected signed-client-data ambiguity policy. Preserve original signed bytes. This produces a pending authorization result only. Keep the original credential revision/counter context and proposed updates for final commit; do not overwrite registry state at this intermediate stage.
 
-Only after that success, Rust generates a fresh 32-byte CSPRNG possession challenge and fresh stage ID. It fixes proof payload `B`, with exactly `version` (integer `1`), `operation` (literal `enroll_agent`), `operation_id`, `installation_id`, `audience`, `principal_id`, `agent_jkt`, `authorization_digest`, `ceremony_id`, `challenge`, `issued_at` and `expires_at`. IDs and thumbprint match `A`; `authorization_digest` is `b64(32)` of the value above. `ceremony_id` is the new possession-stage ID, not A's passkey-stage ID. `challenge` is `b64(32)`. Times form a positive interval of at most 30 seconds within A's interval, also capped by the unchanged monotonic capability deadline. Every field must exactly match the Rust-created pending proof context; the candidate cannot choose a shorter or different interval.
+Only after that success, Rust generates a fresh 32-byte CSPRNG possession challenge and fresh stage ID. It fixes proof payload `B`, with exactly `version` (integer `1`), `crypto_profile` (literal `vollmacht-local-es256-v1`), `operation` (literal `enroll_agent`), `operation_id`, `installation_id`, `audience`, `principal_id`, `agent_jkt`, `authorization_digest`, `ceremony_id`, `challenge`, `issued_at` and `expires_at`. Profile, IDs and thumbprint match `A` and trusted pending state; missing/unknown profiles reject without default or negotiation. `authorization_digest` is `b64(32)` of the value above. `ceremony_id` is the new possession-stage ID, not A's passkey-stage ID. `challenge` is `b64(32)`. Times form a positive interval of at most 30 seconds within A's interval, also capped by the unchanged monotonic capability deadline. Every field must exactly match the Rust-created pending proof context; the candidate cannot choose a shorter or different interval.
 
 The candidate signs one compact ES256 JWS with protected header exactly `typ: "vollmacht-agent-enrollment+jws"`, `alg: "ES256"`, then `kid: agent_jkt`, and embedded payload `JCS(B)`. Decoded header bytes must match the [deterministic header profile](deterministic-headers.md); decoded payload bytes must equal JCS(B). Verify the original compact signing input and a 64-byte `r || s` signature through maintained libraries. No detached/unencoded payload, critical extensions, key URL, header-supplied key or algorithm negotiation. This new candidate type is distinct from `vollmacht-execution+jws` and `vollmacht-mandate+jws`; none may substitute for another. There is no extra hash before the JOSE signing API.
 
@@ -54,6 +55,8 @@ Maximum compact proof is 8,192 ASCII bytes; decoded header is at most 512 bytes 
 The operator may relay public B to the candidate and return its proof through the capability-protected administrative flow. Never give the administration capability to the agent. This profile adds no agent-accessible bootstrap/reset endpoint and no new transport API. The candidate's valid signature proves possession for this pending operation, not administrator authority or a trustworthy agent implementation.
 
 ## Commit, failure and evidence
+
+The MVP permits one lifetime agent slot per installation, as specified by the [provider contract](provider-contract.md). Require that slot to be unused when starting enrollment and recheck it atomically at commit. A disabled slot still exists; enrolling a different key cannot bypass deferred rotation or replacement.
 
 Claim each matching finish once before verification. A wrong capability or stale/unrelated stage ID cannot consume another operation. A failure on an authenticated, matching finish, cancellation, expiry, restart or helper failure consumes the whole operation; late successes cannot revive it. No retry with the same challenge or capability. No candidate mutation is permitted between the passkey approval, possession proof and commit.
 

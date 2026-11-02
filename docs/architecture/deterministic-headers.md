@@ -14,7 +14,7 @@ The placeholders are not literal values. Type is exactly `vollmacht-mandate+jws`
 
 Before passing input to a general JOSE parser, reject duplicate decoded member names, unknown members, wrong types, malformed encodings and unsupported algorithms. Require exact header bytes for the expected type and validated key ID. A differently ordered or escaped header fails this profile even if its signature is valid. Never rewrite received bytes and verify the rewritten artifact. Verify the original compact signing input as defined by [RFC 7515](https://www.rfc-editor.org/rfc/rfc7515.html#section-5.2).
 
-Only protected-header serialization changes. Payloads remain JCS, including the complete issuer envelope and agent proof payloads. Domain-separated mandate, operation and envelope digests, original WebAuthn evidence, challenge construction and reservation identity remain unchanged. No detached payload, unencoded payload, critical extension, embedded key, key URL, algorithm negotiation or fallback is introduced.
+Protected-header serialization uses this fixed order. Payloads remain JCS, including the complete issuer envelope and agent proof payloads. The companion [cryptographic profile proposal](crypto-profiles.md) adds an authenticated `crypto_profile` field to approval/execution and enrollment proposal/proof payloads, so their canonical bytes, resulting digests and signatures change. Domain strings, original-byte WebAuthn verification, challenge construction and reservation identity do not change. No detached payload, unencoded payload, critical extension, embedded key, key URL, algorithm negotiation or fallback is introduced.
 
 ## Key binding and library independence
 
@@ -26,7 +26,7 @@ The byte profile belongs to Vollmacht, not a library's default field order. Pin 
 
 V0 remains ES256 only. Agility means reviewed upgrades, not accepting whatever algorithm an untrusted header requests. Keep serializer, signing provider and verifier interfaces separate; select permitted profiles from trusted configuration and enrollment metadata. Reject `none`, algorithm/key-type mismatches and unknown profiles without fallback or trial verification across algorithms.
 
-Before adding an algorithm or changing wire semantics, define an explicit authenticated profile discriminator, key/algorithm bindings, independent positive and negative vectors, rollout and retirement policy, and downgrade/cross-profile rejection tests. The full choice of future discriminator is not frozen here. Existing `version: 1` must not silently acquire incompatible semantics after release. No second algorithm or generic negotiation framework is needed for MVP.
+The proposed discriminator is required `crypto_profile: "vollmacht-local-es256-v1"`, independent of schema `version: 1`, at the locations and with the trusted bindings defined in [cryptographic profiles](crypto-profiles.md). Only that profile is proposed now. Before adding another, review its role-specific key/algorithm bindings, independent positive and negative vectors, rollout and retirement policy, and downgrade/cross-profile rejection tests. A new identifier cannot silently redefine an existing schema or imply post-quantum protection for unchanged classical roles. No second algorithm or generic negotiation framework is needed for MVP.
 
 ## Remaining acceptance evidence
 
