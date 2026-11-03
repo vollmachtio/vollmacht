@@ -1,0 +1,44 @@
+{
+  "purpose": "Synthetic transport shapes only. AA is not attestation or a COSE key. verified is a simulated helper claim, not cryptographic verification or authority.",
+  "profile": "proposed-registration-helper-v2",
+  "request": {
+    "version": 2,
+    "kind": "verify_registration",
+    "request_id": "000102030405060708090a0b0c0d0e0f",
+    "crypto_profile": "vollmacht-local-es256-v1",
+    "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "rp_id": "localhost",
+    "origin": "http://localhost:8374",
+    "registration": {
+      "id": "AA",
+      "raw_id": "AA",
+      "type": "public-key",
+      "client_data_json": "e30",
+      "attestation_object": "AA"
+    }
+  },
+  "success": {
+    "version": 2,
+    "kind": "registration_result",
+    "request_id": "000102030405060708090a0b0c0d0e0f",
+    "crypto_profile": "vollmacht-local-es256-v1",
+    "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "outcome": "verified",
+    "credential": {
+      "id": "AA",
+      "public_key": "AA",
+      "counter": 0,
+      "backup_eligible": false,
+      "backed_up": false
+    }
+  },
+  "rejection": {
+    "version": 2,
+    "kind": "registration_result",
+    "request_id": "000102030405060708090a0b0c0d0e0f",
+    "crypto_profile": "vollmacht-local-es256-v1",
+    "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "outcome": "rejected",
+    "code": "verification_rejected"
+  }
+}
