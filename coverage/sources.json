@@ -22,6 +22,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "crates/core/src/enrollment.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/core/src/envelope.rs",
       "role": "trusted_core",
       "measurement": "unmeasured"
@@ -42,7 +47,17 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "crates/core/src/public_key.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/core/tests/approval.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/core/tests/enrollment.rs",
       "role": "test",
       "measurement": "unmeasured"
     },
