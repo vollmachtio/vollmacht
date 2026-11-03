@@ -9,6 +9,7 @@ Roles describe purpose, not exclusion from a coverage denominator:
 | Role | Meaning |
 | :--- | :--- |
 | `cli_scaffold` | Current non-production CLI skeleton |
+| `trusted_core` | Security-sensitive portable implementation intended for the trusted core; classification is not qualification or a coverage result |
 | `experiment` | Executable feasibility or assessment implementation, including browser UI |
 | `test` | Test assertions and suite orchestration |
 | `test_support` | Synthetic fixture/helper implementation or shared test driver |
@@ -17,7 +18,7 @@ Roles describe purpose, not exclusion from a coverage denominator:
 | `assessment_model` | Executable proposed-rule model embedded in tests |
 | `documentation_only` | Present source file contains documentation without executable items |
 
-There is no blanket test-directory exclusion. In particular, `tests/support/client_data.rs` is an assessed validator used by the standalone driver. Classifying it as support does not make its behavior irrelevant. Documentation-only files remain listed; this label does not fabricate a zero denominator. Classification changes require review just like additions.
+There is no blanket test-directory exclusion. In particular, `tests/support/client_data.rs` is an assessed validator used by the standalone driver. Classifying it as support does not make its behavior irrelevant. Documentation-only files remain listed; this label does not fabricate a zero denominator. Classification changes require review just like additions. `trusted_core` files remain subject to the same source completeness and measurement validation; the role neither excludes their code nor relaxes the release coverage gates. Initial core parser sources are recorded as `unmeasured` until actual collection is integrated, regardless of passing tests.
 
 Measurement status describes available collection, not successful behavior or thresholds. `unmeasured` means no current coverage measurement, even when tests execute the file. `attribution_only` identifies the shipped browser script whose VM attribution is checked, without complete coverage collection. `raw_swift_fake_tests` identifies the sixteen Swift files compiled into the eight instrumented fake-test binaries (profiles, runtime, diagnostic plan, diagnostic session, delayed controller, probe operation state, probe event adapter and probe model). The model suite injects fake work and controllers; it excludes `ProbeView.swift` and its production singleton factories. Native backend methods remain unexecuted; `ProbeView.swift` remains unmeasured. No status means excluded, fully covered or production-ready.
 

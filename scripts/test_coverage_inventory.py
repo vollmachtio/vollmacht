@@ -25,6 +25,31 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(result["roles"]["test_support"], 1)
         self.assertEqual(result["measurements"]["unmeasured"], 2)
 
+    def test_trusted_core_is_counted_without_implying_coverage(self):
+        value = document()
+        value["sources"][0]["role"] = "trusted_core"
+        result = subject.validate(value, TRACKED)
+        self.assertEqual(result["sources"], 2)
+        self.assertEqual(result["roles"]["trusted_core"], 1)
+        self.assertEqual(result["roles"]["experiment"], 0)
+        self.assertEqual(result["measurements"]["unmeasured"], 2)
+
+    def test_trusted_core_retains_inventory_and_measurement_validation(self):
+        value = document()
+        value["sources"][0]["role"] = "trusted_core"
+        for tracked in [TRACKED | {"src/new_core.rs"}, {"tests/support/a.py"}]:
+            with self.subTest(tracked=tracked), self.assertRaisesRegex(InvalidReport, "requires review"):
+                subject.validate(value, tracked)
+        for status in ["covered", "excluded", "", None]:
+            candidate = copy.deepcopy(value)
+            candidate["sources"][0]["measurement"] = status
+            with self.subTest(status=status), self.assertRaises(InvalidReport):
+                subject.validate(candidate, TRACKED)
+        candidate = copy.deepcopy(value)
+        candidate["sources"][0]["exclude"] = True
+        with self.assertRaises(InvalidReport):
+            subject.validate(candidate, TRACKED)
+
     def test_addition_removal_and_rename_require_review(self):
         for tracked in [TRACKED | {"new.js"}, {"src/a.rs"}, {"src/renamed.rs", "tests/support/a.py"}]:
             with self.subTest(tracked=tracked), self.assertRaisesRegex(InvalidReport, "requires review"):

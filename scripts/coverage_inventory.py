@@ -9,7 +9,7 @@ import sys
 from coverage_compare import InvalidReport, fields, inventory, load, require
 
 SUFFIXES = {".rs", ".py", ".js", ".mjs", ".cjs", ".swift"}
-ROLES = {"cli_scaffold", "experiment", "test", "test_support", "developer_tool",
+ROLES = {"cli_scaffold", "trusted_core", "experiment", "test", "test_support", "developer_tool",
          "fixture_generator", "assessment_model", "documentation_only"}
 MEASUREMENTS = {"unmeasured", "attribution_only", "raw_swift_fake_tests"}
 

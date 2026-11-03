@@ -1337,6 +1337,14 @@ name = "vollmacht-cli"
 version = "0.1.0-dev"
 
 [[package]]
+name = "vollmacht-core"
+version = "0.1.0-dev"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "vollmacht-helper-launcher"
 version = "0.1.0-dev"
 dependencies = [
