@@ -37,6 +37,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "crates/core/src/proof_payload.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/core/tests/approval.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -48,6 +53,11 @@
     },
     {
       "path": "crates/core/tests/json.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/core/tests/proof_payload.rs",
       "role": "test",
       "measurement": "unmeasured"
     },
