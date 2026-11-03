@@ -17,6 +17,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "crates/core/src/client_data.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/core/src/compact.rs",
       "role": "trusted_core",
       "measurement": "unmeasured"
@@ -63,6 +68,11 @@
     },
     {
       "path": "crates/core/tests/approval.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/core/tests/client_data.rs",
       "role": "test",
       "measurement": "unmeasured"
     },
