@@ -5,6 +5,7 @@
 //! which has different Unicode, number and extension compatibility rules.
 
 mod approval;
+mod compact;
 mod digest;
 mod enrollment;
 mod envelope;
@@ -13,6 +14,7 @@ mod proof_payload;
 mod public_key;
 
 pub use approval::{ApprovalError, ApprovalPayload};
+pub use compact::{CompactError, CompactRole, UnverifiedCompact, UnverifiedPayload};
 pub use digest::{DigestError, envelope_digest, mandate_digest, operation_digest};
 pub use enrollment::EnrollmentProposal;
 pub use envelope::{EnvelopeError, MandateEnvelope};
