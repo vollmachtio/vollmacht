@@ -1,5 +1,15 @@
 # Signed client-data ambiguity assessment
 
+## Current assertion-helper enforcement
+
+P09b adds the accepted syntax policy before the experimental assertion helper decodes security fields. Correctly signed duplicate members, invalid UTF-8, BOMs and unpaired surrogates now reject. The historical results below remain the original observations, not current acceptance rules. The signed tests retain these inputs with explicit rejection expectations; valid original whitespace, Unicode and escaping still verify without reserialization.
+
+The bounded adapter uses pinned `jsonc-parser` 3.3.1's visitor API, not its permissive value builder. Comments and trailing commas are disabled; every parser error immediately rejects. The adapter additionally checks the object root, decoded duplicate names, well-formed strings, finite numbers, 12,288-byte input and sixteen-container limit. See the [tagged parser implementation](https://github.com/microsoft/node-jsonc-parser/blob/v3.3.1/src/impl/parser.ts). This dependency is MIT-licensed and has no runtime dependencies; normal lockfile and advisory checks remain required.
+
+This hardens only the existing experimental version 1 assertion helper. It does not implement registration, production packaging, controller enforcement or trusted enrollment. The original signed evidence is passed unchanged to SimpleWebAuthn. The separate Rust core syntax gate and Node gate share policy vectors, but syntax agreement is not evidence verification or authorization.
+
+## Historical observations
+
 Observed 2026-10-03 with pinned Node 24.21.0 and SimpleWebAuthn 14.0.2. These are synthetic signed fixtures, not browser or authenticator evidence. Five tests check the test-only input guard and characterize the unchanged helper, including permissive outcomes that are **not** proposed production acceptance rules. No parser, normalization layer or runtime mitigation is added.
 
 `fixture.mjs` can now sign exact test-supplied client-data bytes instead of JSON.stringify output. This option is test-only, requires a Buffer bounded to 12,288 bytes and copies it before hashing. The helper never imports this fixture. The fixture's software key is known to the test, and its asserted UP/UV flags provide no human-verification evidence. The helper request still passes its strict outer decoder before verification; base64url encoding does not make the embedded JSON unambiguous.
@@ -26,7 +36,7 @@ This confirms the signature still covers original bytes: semantically equivalent
 
 Local pinned source inspection shows `decodeClientDataJSON` calls `JSON.parse` after decoding base64url as UTF-8. The behavioral tests establish duplicate collapse and permissive decoding for the listed cases. They do not establish behavior for every malformed sequence, extension or future library version. Do not mistake the strict outer request parser for validation of the decoded signed JSON.
 
-## Candidate P06 decision, not implemented
+## Historical candidate P06 direction
 
 Before production reuse, select a bounded, standards-aware client-data validation policy and assess its implementation independently. Proposed direction: reject invalid UTF-8, BOM, duplicate decoded member names and unpaired surrogates before trusting parsed fields; retain the original bytes for library signature verification. Preserve valid whitespace/order/escaping. Do not canonicalize and verify a replacement representation. Unknown fields need an explicit compatibility policy rather than applying the mandate schema's blanket unknown-field ban to WebAuthn data.
 
