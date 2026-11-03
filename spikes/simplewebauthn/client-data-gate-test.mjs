@@ -1,4 +1,5 @@
-// Test-harness sequencing only. Neither production helper nor browser is gated.
+// Rust test-harness sequencing plus the Node assessment helper's own syntax gate.
+// This does not qualify a production helper or browser integration.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -97,8 +98,8 @@ test('test-harness gate rejects correctly signed ambiguity before invoking helpe
   const invalidUTF8 = Buffer.concat([original.subarray(0, -1), Buffer.from(',"future":"'), Buffer.from([0xff]), Buffer.from('"}')]);
   for (const bytes of [duplicate, invalidUTF8]) {
     const request = signed(bytes);
-    // Existing helper remains permissive; this is not a signature forgery.
-    assert.equal((await verifyRequest(request)).outcome, 'verified');
+    // Correctly signed ambiguity is independently rejected by the Node gate too.
+    assert.equal((await verifyRequest(request)).outcome, 'rejected');
     let called = false;
     assert.equal(await gatedVerification(request, async value => {
       called = true;

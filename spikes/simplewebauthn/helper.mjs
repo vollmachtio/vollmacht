@@ -3,11 +3,13 @@ import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { decodeClientDataJSON, decodeCredentialPublicKey } from '@simplewebauthn/server/helpers';
 import { pathToFileURL } from 'node:url';
 import { parseRequest, readFrame, frame } from './helper-protocol.mjs';
+import { validateClientData } from './client-data-syntax.mjs';
 
 export async function verifyRequest(r) {
   const base = { version: 1, kind: 'verification_result', request_id: r.request_id, challenge: r.challenge };
   try {
     const c = r.credential, a = r.assertion;
+    validateClientData(Buffer.from(a.client_data_json, 'base64url'));
     if (a.id !== c.id || a.raw_id !== c.id || (a.user_handle && a.user_handle !== c.user_handle)) throw new Error();
     const publicKey = new Uint8Array(Buffer.from(c.public_key, 'base64url'));
     const key = decodeCredentialPublicKey(publicKey);

@@ -1,4 +1,4 @@
-// Characterization only. Verified malformed fixtures are NOT an acceptance policy.
+// Signed regression fixtures: the helper now rejects the previously permissive cases.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fixture } from './helper-fixture.mjs';
@@ -24,18 +24,18 @@ test('raw-byte fixture extension rejects wrong types and oversized input', () =>
   }
 });
 
-test('signed duplicate security fields follow last value, including escaped names', async () => {
+test('signed duplicate security fields reject regardless of order or escaped names', async () => {
   for (const [key, wrong] of Object.entries({
     type: 'webauthn.create', challenge: Buffer.alloc(32, 8).toString('base64url'),
     origin: 'https://wrong.example', crossOrigin: true,
   })) {
     const others = Object.entries(fields).filter(([name]) => name !== key).map(([name, value]) => entry(name, value));
-    assert.equal(await outcome(raw([...others, entry(key, wrong), entry(key, fields[key])])), 'verified', `${key}: last allowed value wins`);
-    assert.equal(await outcome(raw([...others, entry(key, fields[key]), entry(key, wrong)])), 'rejected', `${key}: last wrong value wins`);
+    assert.equal(await outcome(raw([...others, entry(key, wrong), entry(key, fields[key])])), 'rejected', `${key}: last allowed value cannot hide ambiguity`);
+    assert.equal(await outcome(raw([...others, entry(key, fields[key]), entry(key, wrong)])), 'rejected', `${key}: reverse order also rejects`);
   }
   const withoutChallenge = entries.filter(value => !value.startsWith('"challenge":'));
   const escapedName = '"\\u0063hallenge"';
-  assert.equal(await outcome(raw([...withoutChallenge, entry('challenge', 'wrong'), `${escapedName}:${JSON.stringify(challenge)}`])), 'verified');
+  assert.equal(await outcome(raw([...withoutChallenge, entry('challenge', 'wrong'), `${escapedName}:${JSON.stringify(challenge)}`])), 'rejected');
   assert.equal(await outcome(raw([...withoutChallenge, entry('challenge', challenge), `${escapedName}:"wrong"`])), 'rejected');
 });
 
@@ -50,20 +50,31 @@ test('signed extension fields and cross-origin shapes have distinct outcomes', a
   }
 });
 
-test('signed malformed text characterizes decoding, not production permission', async () => {
+test('signed malformed text rejects before permissive library decoding', async () => {
   const invalidUTF8 = Buffer.concat([raw(entries).subarray(0, -1), Buffer.from(',"unknown":"'), Buffer.from([0xff]), Buffer.from('"}')]);
-  assert.equal(await outcome(invalidUTF8), 'verified');
-  assert.equal(await outcome(raw([...entries, '"unknown":"\\ud800"'])), 'verified');
-  assert.equal(await outcome(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), raw(entries)])), 'verified');
+  assert.equal(await outcome(invalidUTF8), 'rejected');
+  assert.equal(await outcome(raw([...entries, '"unknown":"\\ud800"'])), 'rejected');
+  assert.equal(await outcome(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), raw(entries)])), 'rejected');
   assert.equal(await outcome(Buffer.from('{')), 'rejected');
   assert.equal(await outcome(Buffer.concat([raw(entries), Buffer.from(' trailing')])), 'rejected');
+});
+
+test('correctly signed unknown extensions cannot bypass syntax checks', async () => {
+  for (const extension of [
+    '"unknown":{"name":1,"\\u006eame":2}',
+    '"unknown":[{"name":1,"name":2}]',
+    '"unknown":1e400',
+    '"unknown":' + '['.repeat(16) + '0' + ']'.repeat(16),
+  ]) assert.equal(await outcome(raw([...entries, extension])), 'rejected');
+  assert.equal(await outcome(raw([...entries, '"unknown":' + '['.repeat(15) + '0' + ']'.repeat(15)])), 'verified');
 });
 
 test('valid byte variations verify only with their original signatures', async () => {
   const pretty = Buffer.from(JSON.stringify(fields, null, 2));
   const reordered = raw([...entries].reverse());
   const escaped = raw(entries.map(value => value.startsWith('"origin":') ? '"origin":"http:\\/\\/localhost:8374"' : value));
-  for (const bytes of [pretty, reordered, escaped]) {
+  const unicode = Buffer.from(JSON.stringify({ ...fields, extension: { '日本語': ['😀', null, true, -1, 1.25] } }, null, 2));
+  for (const bytes of [pretty, reordered, escaped, unicode]) {
     const original = request(bytes);
     assert.equal((await verifyRequest(original)).outcome, 'verified');
     const altered = structuredClone(original);

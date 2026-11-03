@@ -497,6 +497,16 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/simplewebauthn/client-data-syntax.mjs",
+      "role": "experiment",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/client-data-syntax-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/simplewebauthn/client-data-test.mjs",
       "role": "test",
       "measurement": "unmeasured"
