@@ -13,6 +13,7 @@ serde = "=1.0.229"
 serde_json = "=1.0.154"
 serde_jcs = "=0.2.0"
 base64 = { version = "=0.23.1", default-features = false, features = ["std"] }
+openssl = "=0.10.81"
 
 [lints]
 workspace = true
