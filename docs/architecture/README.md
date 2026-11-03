@@ -1,5 +1,7 @@
 # P06 candidate architecture
 
+Current decision: see the [P06a acceptance record](portable-acceptance.md) and [portable decisions](portable-decisions.md). Acceptance becomes effective only when that reviewed change merges with required checks. At that point the record supersedes the historical unaccepted wording below for the listed portable contracts only. P06b, implementation tests and live/release qualification remain open. These historical ADRs retain their security requirements; they do not independently authorize implementation.
+
 Status: **PROPOSED**, revised 2026-11-01. The maintainer approved separating portable contract acceptance from deployment qualification. This changes sequencing, not the acceptance status of these ADR candidates: it does not freeze a protocol, complete P04/P06, or authorize P07 implementation today. Existing experiments remain experiments. Read the [design baseline](../design-baseline.md), [helper assessment](../helper-assessment.md) and [candidate contract](mandate-contract.md) together.
 
 Follow-up proposals cover [trusted enrollment and recovery](enrollment.md), the [deployment/bootstrap decision ledger](deployment-bootstrap.md) and [GitHub merge preconditions](github-preconditions.md). The maintainer accepted the limited disposable-repository no-retargeting assumption for the first live demo on 2026-10-03; its safeguards remain unimplemented. This does not accept P06 or waive the remaining gates.
