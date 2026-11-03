@@ -17,6 +17,16 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "crates/core/src/digest.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/core/src/envelope.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/core/src/lib.rs",
       "role": "trusted_core",
       "measurement": "unmeasured"
@@ -28,6 +38,11 @@
     },
     {
       "path": "crates/core/tests/approval.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/core/tests/envelope.rs",
       "role": "test",
       "measurement": "unmeasured"
     },
