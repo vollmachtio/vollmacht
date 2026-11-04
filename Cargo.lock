@@ -1424,6 +1424,7 @@ dependencies = [
  "libc",
  "openssl",
  "serde_json",
+ "vollmacht-core",
  "vollmacht-helper-probe",
 ]
 
