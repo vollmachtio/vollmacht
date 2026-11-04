@@ -65,6 +65,8 @@ Reprioritized 2026-11-03: delivery is measured by a runnable workflow, not addit
 
 No new standalone research, general-purpose abstraction, optional diagnostic, additional platform/action, or standards refresh enters the MVP critical path unless it resolves a demonstrated integration or security blocker. Existing mandatory CI, adversarial review, tests and coverage policy remain unchanged. Necessary security fixes take priority over this scope freeze.
 
+The first integration checkpoint is the [simulated merge test](development.md#integrated-simulated-merge): fixed signed artifacts traverse the actual core signature verifier and Node WebAuthn helper before reaching a recording-only adapter. It covers verification and in-memory consumption, not the complete milestone B. Fresh proposal/approval/issuance, trusted enrollment, durable state and a user-facing command remain unfinished; do not count this fixture-based test as a working product or live MVP.
+
 Organize parallel work around the integrated flow: one integration owner, one disjoint implementation lane for its next missing dependency, and independent adversarial validation. Prefer coherent reviewable feature slices over one PR per helper function. Every implementation PR must identify the runnable acceptance test it enables or the specific blocker it removes. Re-estimate remaining work after the first integrated run; do not promise dates from PR counts.
 
 ## Per-PR execution contract

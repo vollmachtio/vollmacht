@@ -1,15 +1,28 @@
 # Development
 
-Install Rust using [rustup](https://rustup.rs/), Python 3.11 or newer, and Node.js 22 or newer (only for dependency-free browser-script tests). From the repository root, rustup selects Rust 1.98.1 and the rustfmt and Clippy components specified in rust-toolchain.toml. Homebrew Rust also works when its version matches the pin and those components are present. The check script rejects mismatched rustc or Cargo versions because Homebrew does not enforce rustup's toolchain file.
+Install Rust using [rustup](https://rustup.rs/), Python 3.11 or newer, and the Node.js version pinned in `spikes/simplewebauthn/.node-version`. From the repository root, rustup selects Rust 1.98.1 and the rustfmt and Clippy components specified in rust-toolchain.toml. Homebrew Rust also works when its version matches the pin and those components are present. The check script rejects mismatched rustc or Cargo versions because Homebrew does not enforce rustup's toolchain file.
 
 ```sh
 cargo build
+npm ci --prefix spikes/simplewebauthn
 python3 scripts/check.py
 target/debug/vollmacht help
 target/debug/vollmacht version
 ```
 
 The current binary only prints help and version information. Unsupported arguments fail with status 2 without echoing input. It opens no listener, reads no credentials, and performs no GitHub operations.
+
+## Integrated simulated merge
+
+After the prerequisites above, run this targeted integration test from the repository root:
+
+```sh
+VOLLMACHT_TEST_NODE="$(command -v node)" cargo test -p vollmacht-helper-launcher --test simulated_merge --locked -- --nocapture
+```
+
+This test connects the core issuer/agent signature checks and original-byte client-data gate to the actual Node WebAuthn verifier through the Rust helper coordinator and launcher. Trusted setup uses fixed signed fixtures and a fixed test clock. Successful verification reaches only an in-memory merge recorder; the test also checks rejection paths and reuse. Missing runtime or helper prerequisites fail rather than skip. The full check script supplies the Node path automatically.
+
+This is an integration checkpoint, not the live MVP: it does not create a real approval ceremony, issue a new mandate, enroll a user, persist replay state or call GitHub. It uses no native keys or GitHub credentials. Durable enforcement and deployment qualification remain required before live execution.
 
 ## Workspace conventions
 

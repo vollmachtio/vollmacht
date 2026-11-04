@@ -81,6 +81,9 @@ jobs:
         with:
           node-version-file: spikes/simplewebauthn/.node-version
           package-manager-cache: false
+      - name: Install locked helper dependencies for integrated simulation
+        working-directory: spikes/simplewebauthn
+        run: npm ci
       - name: Check workspace
         run: python3 scripts/check.py
       - name: Check compile-only Apple key profiles

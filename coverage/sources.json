@@ -247,6 +247,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/helper-launcher/tests/simulated_merge.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/helper-launcher/tests/lifecycle.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -608,6 +613,11 @@
     },
     {
       "path": "spikes/simplewebauthn/registration-binding.test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/simulation-context.mjs",
       "role": "test",
       "measurement": "unmeasured"
     },

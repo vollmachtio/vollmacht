@@ -1,6 +1,7 @@
 """Run the same toolchain and Cargo checks locally and in CI (Python 3.11+)."""
 
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import tomllib
@@ -8,6 +9,10 @@ import tomllib
 
 def main():
     root = Path(__file__).resolve().parent.parent
+    node = shutil.which("node")
+    if node is None:
+        raise SystemExit("Pinned Node runtime is required for the simulated merge integration.")
+    os.environ["VOLLMACHT_TEST_NODE"] = str(Path(node).resolve())
     toolchain = tomllib.loads((root / "rust-toolchain.toml").read_text())
     expected = toolchain["toolchain"]["channel"]
     manifest = tomllib.loads((root / "Cargo.toml").read_text())
