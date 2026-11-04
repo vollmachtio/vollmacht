@@ -13,6 +13,7 @@ mod envelope;
 mod json;
 mod proof_payload;
 mod public_key;
+mod signing_input;
 mod verification;
 
 pub use approval::{ApprovalError, ApprovalPayload};
@@ -24,6 +25,7 @@ pub use envelope::{EnvelopeError, MandateEnvelope};
 pub use json::{ApplicationObject, InputLimit, MAX_INPUT_BYTES, ParseError, parse_object};
 pub use proof_payload::{EnrollmentPossessionPayload, ExecutionProofPayload, ProofPayloadError};
 pub use public_key::{AgentPublicKey, EnrollmentError};
+pub use signing_input::{PreparedSigningInput, SigningInputError};
 pub use verification::{
     SignatureCheckedCompact, VerificationBinding, VerificationError, VerificationRuntime,
 };
