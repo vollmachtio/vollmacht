@@ -24,6 +24,8 @@ This test connects the core issuer/agent signature checks and original-byte clie
 
 This is an integration checkpoint, not the live MVP: it does not create a real approval ceremony, issue a new mandate, enroll a user, persist replay state or call GitHub. It uses no native keys or GitHub credentials. Durable enforcement and deployment qualification remain required before live execution.
 
+The core execution verifier uses a captured trusted context and a coordinator-selected evidence adapter. Its candidate result is not authorization to dispatch. The simulation claims each matching attempt before verification and performs fake final state checks separately. Production callers will need authenticated storage, durable consumption/reservation and fresh state/time checks; implementing the evidence adapter incorrectly can bypass WebAuthn verification. No agent-supplied context or adapter is trusted by this design.
+
 ## Workspace conventions
 
 The separate [Apple key experiment](../spikes/macos-key/README.md) compiles on macOS and Linux. Its tests use software keys only. Hardware invocation is explicit and is never part of CI; default invocation prints help. It requests no permanent keys and does not alter the production CLI.
