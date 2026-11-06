@@ -257,6 +257,11 @@
       "measurement": "unmeasured"
     },
     {
+      "path": "spikes/helper-launcher/tests/fresh_simulated_merge.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/helper-launcher/tests/simulated_merge.rs",
       "role": "test",
       "measurement": "unmeasured"
@@ -624,6 +629,16 @@
     {
       "path": "spikes/simplewebauthn/registration-binding.test.mjs",
       "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/fresh-simulation-context-test.mjs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "spikes/simplewebauthn/fresh-simulation-context.mjs",
+      "role": "test_support",
       "measurement": "unmeasured"
     },
     {

@@ -26,6 +26,18 @@ This is an integration checkpoint, not the live MVP: it does not create a real a
 
 The core execution verifier uses a captured trusted context and a coordinator-selected evidence adapter. Its candidate result is not authorization to dispatch. The simulation claims each matching attempt before verification and performs fake final state checks separately. Production callers will need authenticated storage, durable consumption/reservation and fresh state/time checks; implementing the evidence adapter incorrectly can bypass WebAuthn verification. No agent-supplied context or adapter is trusted by this design.
 
+### Fresh synthetic approval and issuance
+
+The fresh-flow test generates ephemeral issuer, agent and synthetic authenticator keys rather than loading pre-signed artifacts:
+
+```sh
+VOLLMACHT_TEST_NODE="$(command -v node)" cargo test -p vollmacht-helper-launcher --test fresh_simulated_merge --locked -- --nocapture
+```
+
+It creates a new proposal and mandate challenge, obtains a synthetic assertion, verifies the evidence with the actual helper, signs new mandate/proof bytes through the prepared-input guards, and exercises core verification before a recording-only merge. Software signing is confined to this test executable. The original fixed-vector integration remains as an independent regression oracle.
+
+Synthetic user-verification flags do not demonstrate human approval or Touch ID. This test does not enroll a real credential, qualify a native issuer, persist authority or contact GitHub. It is a fresh simulated flow, not the user-facing MVP; real approval/issuance and durable enforcement remain required.
+
 ## Workspace conventions
 
 The separate [Apple key experiment](../spikes/macos-key/README.md) compiles on macOS and Linux. Its tests use software keys only. Hardware invocation is explicit and is never part of CI; default invocation prints help. It requests no permanent keys and does not alter the production CLI.
