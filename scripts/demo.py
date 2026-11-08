@@ -15,6 +15,7 @@ STAGES = (
     ("issued", "Verified approval evidence and signed a fresh, bounded mandate."),
     ("claimed", "Committed the execution attempt to disposable SQLite storage."),
     ("verified_candidate", "Verified the agent proof and approval evidence: merge candidate ready."),
+    ("resource_checked", "Compared fixture repository facts and current method restrictions; changed head or base is denied."),
     ("replay_denied", "Reopened storage: replay denied without another verification call."),
     ("negatives_passed", "Tampering, expiry, stored-binding changes and concurrent attempts checked."),
 )

@@ -18,7 +18,7 @@ With the [development prerequisites](docs/development.md) installed, run from th
 python3 scripts/demo.py
 ```
 
-This runs the actual synthetic integration and presents its checked stages: proposal, synthetic approval, signed mandate, durable attempt, verified candidate and replay denial. It also checks tampering, expiry and concurrent attempts. First compilation may take a few minutes.
+This runs the actual synthetic integration and presents its checked stages: proposal, synthetic approval, signed mandate, durable attempt, verified candidate, fixture resource comparison and replay denial. It also checks tampering, expiry, changed head/base/repository facts, policy restrictions and concurrent attempts. First compilation may take a few minutes.
 
 No Touch ID, Keychain or GitHub credentials are used. No GitHub action is sent. The demo uses temporary test storage and software keys; it is a reviewable walkthrough, not the live MVP or a production fallback. Final reservation, real approval and deployment qualification remain unfinished.
 

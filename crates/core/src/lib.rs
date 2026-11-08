@@ -12,6 +12,7 @@ mod enrollment;
 mod envelope;
 mod execution;
 mod json;
+mod preflight;
 mod proof_payload;
 mod public_key;
 mod signing_input;
@@ -29,6 +30,10 @@ pub use execution::{
     PendingExecution, VerifiedExecutionCandidate, verify_claimed_attempt,
 };
 pub use json::{ApplicationObject, InputLimit, MAX_INPUT_BYTES, ParseError, parse_object};
+pub use preflight::{
+    CurrentMergePolicy, MergeMetadataProvider, MergeMethod, MergeObservation, MergeResourceRequest,
+    MetadataError, ResourceComparedCandidate, ResourceComparisonError, compare_merge_resource,
+};
 pub use proof_payload::{EnrollmentPossessionPayload, ExecutionProofPayload, ProofPayloadError};
 pub use public_key::{AgentPublicKey, EnrollmentError};
 pub use signing_input::{PreparedSigningInput, SigningInputError};
