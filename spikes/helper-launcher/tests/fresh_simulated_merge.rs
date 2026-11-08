@@ -48,6 +48,30 @@ fn attempt<'a>(
     helper: &impl EvidenceRechecker,
     now: u64,
 ) -> Result<VerifiedExecutionCandidate<'a>, &'static str> {
+    attempt_checked(
+        ledger,
+        runtime,
+        context,
+        issuer,
+        proof,
+        helper,
+        (now, |_| Ok(())),
+    )
+}
+
+fn attempt_checked<'a>(
+    ledger: &mut Ledger,
+    runtime: &VerificationRuntime,
+    context: &'a ExecutionContext,
+    issuer: &[u8],
+    proof: &[u8],
+    helper: &impl EvidenceRechecker,
+    stage: (
+        u64,
+        impl FnOnce(&VerifiedExecutionCandidate<'a>) -> Result<(), &'static str>,
+    ),
+) -> Result<VerifiedExecutionCandidate<'a>, &'static str> {
+    let (now, compare) = stage;
     let claim = ledger
         .claim_submission(request(context), attempt_fixture::sample(now))
         .map_err(|_| "claim denied")?;
@@ -77,12 +101,86 @@ fn attempt<'a>(
     } else {
         Err("snapshot denied")
     };
+    let result = result.and_then(|candidate| {
+        compare(&candidate)?;
+        Ok(candidate)
+    });
     if result.is_err() {
         ledger
             .finish_rejected(&claim, &id(), attempt_fixture::sample(now))
             .map_err(|_| "rejection failed; stop")?;
     }
     result
+}
+
+// Fixed, current test observations only. No GitHub lookup, fixture qualification
+// or no-retarget guarantee is supplied by this provider.
+struct FixtureMetadata {
+    fault: u8,
+}
+impl MergeMetadataProvider for FixtureMetadata {
+    fn observe(
+        &self,
+        request: &MergeResourceRequest<'_>,
+    ) -> Result<MergeObservation, MetadataError> {
+        assert_eq!(request.host(), "github.com");
+        assert_eq!(request.repository_id(), "12345");
+        assert_eq!(request.pull_request_number(), 42);
+        if self.fault == 7 {
+            return Err(MetadataError);
+        }
+        let mut result = MergeObservation {
+            repository_id: "12345".into(),
+            repository_label: "vollmacht-disposable/example".into(),
+            pull_request_number: 42,
+            head_sha: "a".repeat(40),
+            base_ref: "main".into(),
+            allowed_methods: vec![MergeMethod::Squash],
+        };
+        match self.fault {
+            1 => result.head_sha = "b".repeat(40),
+            2 => result.base_ref = "other".into(),
+            3 => result.repository_id = "54321".into(),
+            4 => result.repository_label = "other/repository".into(),
+            5 => result.pull_request_number = 43,
+            6 => result.allowed_methods = vec![MergeMethod::Merge],
+            _ => {}
+        }
+        Ok(result)
+    }
+}
+
+fn compare_fixture(
+    candidate: &VerifiedExecutionCandidate<'_>,
+    fault: u8,
+) -> Result<(), &'static str> {
+    let policy = CurrentMergePolicy {
+        revision: if fault == 8 { 2 } else { 1 },
+        allowed_methods: if fault == 9 {
+            vec![MergeMethod::Rebase]
+        } else {
+            vec![MergeMethod::Squash]
+        },
+    };
+    let compared = compare_merge_resource(candidate, &policy, &FixtureMetadata { fault }, || {
+        ExecutionTime {
+            wall_seconds: if fault == 10 { NOW + 20 } else { NOW + 2 },
+            monotonic: if fault == 11 {
+                candidate.context().pending().deadline
+            } else {
+                Instant::now()
+            },
+            session_id: if fault == 12 {
+                id()
+            } else {
+                candidate.context().trust().session_id.clone()
+            },
+        }
+    })
+    .map_err(|_| "resource comparison denied")?;
+    assert!(std::ptr::eq(compared.candidate(), candidate));
+    assert_eq!(compared.observation().head_sha, "a".repeat(40));
+    Ok(())
 }
 
 struct ObservedHelper<'a> {
@@ -566,7 +664,15 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
             fixture: store,
             calls: &helper_calls,
         };
-        attempt(ledger, &runtime, &context, &issuer, bytes, &observed, now)
+        attempt_checked(
+            ledger,
+            &runtime,
+            &context,
+            &issuer,
+            bytes,
+            &observed,
+            (now, |candidate| compare_fixture(candidate, 0)),
+        )
     };
     let store = AttemptFixture::new(&context, &issuer_public);
     let mut ledger = store.open(NOW + 2);
@@ -579,6 +685,7 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     assert!(now >= candidate.proof_issued_at() && now < candidate.proof_expires_at());
     assert!(Instant::now() < candidate.context().pending().deadline);
     demo_stage("verified_candidate");
+    demo_stage("resource_checked");
     let mut recorded = vec![candidate.operation().clone()];
     assert_eq!(
         recorded[0]["constraints"]["expected_head_sha"],
@@ -590,6 +697,37 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     assert_eq!(calls(), 1);
     assert_eq!(recorded.len(), 1);
     demo_stage("replay_denied");
+    for fault in 1..=12 {
+        let changed = AttemptFixture::new(&context, &issuer_public);
+        let mut ledger = changed.open(NOW + 2);
+        let observed = ObservedHelper {
+            helper: &helper,
+            fixture: &changed,
+            calls: &helper_calls,
+        };
+        let result = attempt_checked(
+            &mut ledger,
+            &runtime,
+            &context,
+            &issuer,
+            &proof,
+            &observed,
+            (NOW + 2, |candidate| compare_fixture(candidate, fault)),
+        );
+        if let Ok(candidate) = result {
+            recorded.push(candidate.operation().clone());
+        }
+        assert_eq!(
+            recorded.len(),
+            1,
+            "resource fault {fault} must not reach recorder"
+        );
+        assert_eq!(changed.state(), "rejected");
+        drop(ledger);
+        let before = calls();
+        assert!(invoke(&changed, &mut changed.open(NOW + 2), &proof, NOW + 2).is_err());
+        assert_eq!(calls(), before);
+    }
     let mut bad = proof.clone();
     let index = bad.iter().rposition(|b| *b == b'.').unwrap() + 1;
     bad[index] = if bad[index] == b'A' { b'B' } else { b'A' };

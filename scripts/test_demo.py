@@ -13,7 +13,7 @@ import demo
 
 EVENTS = (
     "proposal", "synthetic_approval", "issued", "claimed",
-    "verified_candidate", "replay_denied", "negatives_passed",
+    "verified_candidate", "resource_checked", "replay_denied", "negatives_passed",
 )
 PIN = "v" + (demo.ROOT / "spikes/simplewebauthn/.node-version").read_text().strip()
 
@@ -95,7 +95,7 @@ class DemoTests(unittest.TestCase):
         self.assertIn("NOT sent", output)
         self.assertIn("not dispatch authority", output)
         self.assertNotIn("diagnostic-secret", output)
-        self.assertEqual(len([line for line in output.splitlines() if line[:1].isdigit()]), 7)
+        self.assertEqual(len([line for line in output.splitlines() if line[:1].isdigit()]), 8)
         prefix = chr(45) * 2
         self.assertEqual(calls[0].args[0], ["/fixture/bin/node", prefix + "version"])
         self.assertEqual(calls[0].kwargs["timeout"], 10)

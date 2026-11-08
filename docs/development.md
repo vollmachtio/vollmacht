@@ -44,6 +44,8 @@ It creates a new proposal and mandate challenge, obtains a synthetic assertion, 
 
 Execution attempts use disposable SQLite storage: a matching claim commits before verification, captured bindings are compared with the trusted context, and failed verification appends a rejection. Successful verification leaves the attempt claimed and records only a candidate, not a reservation or completed merge. Same-session reopen checks cannot recover a receipt or reuse the challenge.
 
+Before recording, the fresh flow also compares exact repository identity/label, PR number, head and base against a fixture metadata provider, and checks method restrictions and policy revision. The clock is sampled after metadata retrieval so provider delay cannot bypass proof expiry or the original deadlines. Resource/policy comparison failure appends a rejection while the claim receipt is still held. This is partial resource comparison, not complete live preflight: current API eligibility, disposable-fixture qualification, full policy evaluation, remote races and final atomic status/revision checks remain separate. No GitHub metadata is fetched by this demo.
+
 Synthetic user-verification flags do not demonstrate human approval or Touch ID. This test does not enroll a real credential, qualify a native issuer, provision production authority or contact GitHub. It is a fresh simulated flow, not the user-facing MVP; real approval/issuance, final reservation and deployment-qualified persistence remain required.
 
 ## Durable attempt ledger

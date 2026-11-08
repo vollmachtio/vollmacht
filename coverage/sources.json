@@ -2,6 +2,11 @@
   "version": 1,
   "sources": [
     {
+      "path": "crates/core/src/preflight.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "scripts/demo.py",
       "role": "developer_tool",
       "measurement": "unmeasured"

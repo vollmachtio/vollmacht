@@ -12,6 +12,130 @@ use vollmacht_core::{
 };
 
 const NOW: u64 = 1_800_000_061;
+
+fn resource_comparison_binds_facts_and_samples_time_after_observation(
+    runtime: &VerificationRuntime,
+) {
+    use vollmacht_core::{
+        CurrentMergePolicy, MergeMetadataProvider, MergeMethod, MergeObservation,
+        MergeResourceRequest, MetadataError, compare_merge_resource,
+    };
+    struct Facts {
+        mode: u8,
+        calls: Cell<usize>,
+    }
+    impl MergeMetadataProvider for Facts {
+        fn observe(
+            &self,
+            request: &MergeResourceRequest<'_>,
+        ) -> Result<MergeObservation, MetadataError> {
+            assert_eq!(request.host(), "github.com");
+            assert_eq!(request.repository_id(), "12345");
+            assert_eq!(request.pull_request_number(), 42);
+            self.calls.set(self.calls.get() + 1);
+            let mut facts = MergeObservation {
+                repository_id: "12345".into(),
+                repository_label: "vollmacht-disposable/example".into(),
+                pull_request_number: 42,
+                head_sha: "a".repeat(40),
+                base_ref: "main".into(),
+                allowed_methods: vec![MergeMethod::Squash],
+            };
+            match self.mode {
+                1 => facts.repository_id = "12346".into(),
+                2 => facts.repository_label = "renamed/example".into(),
+                3 => facts.pull_request_number = 43,
+                4 => facts.head_sha = "b".repeat(40),
+                5 => facts.base_ref = "release".into(),
+                6 => facts.allowed_methods = vec![MergeMethod::Merge, MergeMethod::Rebase],
+                7 => return Err(MetadataError),
+                8 => facts.repository_id.clear(),
+                _ => (),
+            }
+            Ok(facts)
+        }
+    }
+    let now = Instant::now();
+    let context = context(now);
+    let fixture = fixture();
+    let evidence = Evidence {
+        calls: Cell::new(0),
+        mode: 0,
+    };
+    let candidate = verify_claimed_attempt(
+        runtime,
+        &context,
+        fixture["issuer"]["jws"].as_str().unwrap().as_bytes(),
+        fixture["execution"]["jws"].as_str().unwrap().as_bytes(),
+        &evidence,
+        clock(now),
+    )
+    .unwrap();
+    let policy = CurrentMergePolicy {
+        revision: 1,
+        allowed_methods: vec![MergeMethod::Squash],
+    };
+    for mode in 0..=8 {
+        let provider = Facts {
+            mode,
+            calls: Cell::new(0),
+        };
+        let result = compare_merge_resource(&candidate, &policy, &provider, || {
+            assert_eq!(provider.calls.get(), 1, "sample after metadata, not before");
+            clock(now)
+        });
+        assert_eq!(result.is_ok(), mode == 0, "mode {mode}");
+        assert_eq!(provider.calls.get(), 1);
+        if let Ok(result) = result {
+            assert!(std::ptr::eq(result.candidate(), &candidate));
+            assert_eq!(result.observed_at().wall_seconds, NOW);
+            assert_eq!(result.observation().base_ref, "main");
+        }
+    }
+    let provider = Facts {
+        mode: 0,
+        calls: Cell::new(0),
+    };
+    for policy in [
+        CurrentMergePolicy {
+            revision: 2,
+            allowed_methods: vec![MergeMethod::Squash],
+        },
+        CurrentMergePolicy {
+            revision: 1,
+            allowed_methods: vec![],
+        },
+    ] {
+        assert!(
+            compare_merge_resource(&candidate, &policy, &provider, || panic!(
+                "no clock on policy denial"
+            ))
+            .is_err()
+        );
+    }
+    assert_eq!(
+        provider.calls.get(),
+        0,
+        "policy denial precedes metadata access"
+    );
+    for variant in 0..5 {
+        assert!(
+            compare_merge_resource(&candidate, &policy, &provider, || {
+                let mut time = clock(now);
+                match variant {
+                    0 => time.wall_seconds = candidate.proof_expires_at(),
+                    1 => time.wall_seconds = candidate.proof_issued_at() - 1,
+                    2 => time.monotonic = context.pending().deadline,
+                    3 => time.monotonic = context.trust().approval_deadline,
+                    _ => time.session_id = "other".into(),
+                }
+                time
+            })
+            .is_err(),
+            "time variant {variant}"
+        );
+    }
+}
 fn fixture() -> Value {
     serde_json::from_str(include_str!(
         "../../../spikes/canonicalization/fixtures/candidate-profile-vector.json"
@@ -185,6 +309,7 @@ fn trusted_context_rejects_substituted_record_and_key_bindings() {
 #[test]
 fn real_signatures_require_context_time_and_exact_evidence_result() {
     let runtime = VerificationRuntime::initialize().unwrap();
+    resource_comparison_binds_facts_and_samples_time_after_observation(&runtime);
     let f = fixture();
     let issuer = f["issuer"]["jws"].as_str().unwrap().as_bytes();
     let proof = f["execution"]["jws"].as_str().unwrap().as_bytes();
