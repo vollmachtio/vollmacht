@@ -1459,10 +1459,12 @@ dependencies = [
  "getrandom 0.4.3",
  "libc",
  "openssl",
+ "rusqlite",
  "serde_jcs",
  "serde_json",
  "vollmacht-core",
  "vollmacht-helper-probe",
+ "vollmacht-state",
 ]
 
 [[package]]
