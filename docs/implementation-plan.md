@@ -53,6 +53,10 @@ Tasks spanning milestones are delivered in separate coherent slices; their full 
 
 The working MVP completes at D. Version 0.1 is the packaged experimental release at E, not GA. One principal, one agent and one exact GitHub operation are sufficient. Advanced rotation/recovery, MCP, GitHub App credentials, additional platforms, external verifiers, multi-hop delegation and other write actions follow later. Credential disable, safe failure/recovery semantics and replay protection are not deferred. Standards mappings document gaps; transport adapters are separate follow-up work.
 
+### Review checkpoint before further expansion
+
+The maintainer prioritizes a runnable demo and iteration over a polished final product. `python3 scripts/demo.py` is the first review checkpoint: it presents the tested synthetic flow and durable replay denial without implying live authorization. Use feedback on this walkthrough to shape the next user-facing increment. Keep final reservation/preflight, real approval and live deployment gates intact, but defer optional frameworks, site polish and broad hardening beyond the demonstrated MVP path. The demo command itself is included in mandatory checks.
+
 ### Next execution queue
 
 Reprioritized 2026-11-03: delivery is measured by a runnable workflow, not additional isolated components. P06a and P07 are already accepted/delivered; do not repeat their research. This changes execution order and scope priorities, not the frozen security contract or live deployment gates.

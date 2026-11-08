@@ -38,12 +38,14 @@ def main():
         ["python3", "scripts/test_coverage_swift.py"],
         ["python3", "scripts/test_coverage_compare.py"],
         ["python3", "scripts/test_coverage_inventory.py"],
+        ["python3", "scripts/test_demo.py"],
         ["python3", "scripts/test_normalize_swift_coverage.py"],
         ["python3", "scripts/coverage_inventory.py"],
         ["python3", "scripts/test_browser_coverage.py", shutil.which("node") or "node"],
         ["cargo", "fmt", option + "all", option, option + "check"],
         ["cargo", "clippy", option + "workspace", option + "all-targets", option + "locked", option, "-D", "warnings"],
         ["cargo", "test", option + "workspace", option + "locked"],
+        ["python3", "scripts/demo.py"],
         ["cargo", "build", option + "workspace", option + "release", option + "locked"],
     ]
     for command in commands:
