@@ -31,6 +31,14 @@ use vollmacht_state::Ledger;
 const NOW: u64 = 1_800_000_000; // Explicit deterministic test clock, not host time.
 const PROFILE: &str = "vollmacht-local-es256-v1";
 
+// Fixed stage markers only. The demo runner publishes them only after this
+// entire test succeeds; partial output is not a successful demo transcript.
+fn demo_stage(stage: &'static str) {
+    if std::env::var_os("VOLLMACHT_DEMO_TRACE").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        println!("VOLLMACHT_DEMO:{stage}");
+    }
+}
+
 fn attempt<'a>(
     ledger: &mut Ledger,
     runtime: &VerificationRuntime,
@@ -438,6 +446,7 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     let session = id();
     let approval = ApprovalPayload::parse(&serde_json::to_vec(&json!({"version":1,"crypto_profile":PROFILE,"mandate_id":id(),"nonce":B64.encode(random::<32>()),"issuer_id":issuer_id,"audience":audience,"principal_id":principal,"credential_id":credential["id"],"agent_jkt":agent_jkt,"policy_revision":1,"issued_at":NOW,"expires_at":NOW+120,"operation":{"action":"github.pull_request.merge","resource":{"host":"github.com","repository_id":"12345","pull_request_number":42},"constraints":{"expected_head_sha":"a".repeat(40),"base_ref":"main","merge_method":"squash"}},"display":{"version":1,"repository":"vollmacht-disposable/example"}})).unwrap()).unwrap();
     let challenge = B64.encode(mandate_digest(&approval).unwrap());
+    demo_stage("proposal");
     let assertion = browser.approve(&challenge);
     assert_eq!(assertion["id"], credential["id"]);
     assert_eq!(assertion["raw_id"], credential["id"]);
@@ -448,6 +457,7 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     )
     .unwrap();
     let prepared = PreparedSigningInput::issuer(&envelope, &issuer_id, &issuer_public).unwrap();
+    demo_stage("synthetic_approval");
     let mut issuer_calls = 0;
     let issuance = Issuance {
         envelope: &envelope,
@@ -496,6 +506,7 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
         .issue(false, NOW + 1, true, &mut issuer_calls)
         .unwrap();
     assert_eq!(issuer_calls, 2);
+    demo_stage("issued");
     let execution_challenge = B64.encode(random::<32>());
     assert_ne!(execution_challenge, challenge);
     let md = B64.encode(mandate_digest(envelope.approval()).unwrap());
@@ -562,10 +573,12 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     let candidate = invoke(&store, &mut ledger, &proof, NOW + 2).unwrap();
     assert_eq!(calls(), 1);
     assert_eq!(store.state(), "claimed");
+    demo_stage("claimed");
     // Recording-only candidate event, NOT a reservation or dispatch permit.
     let now = NOW + 2;
     assert!(now >= candidate.proof_issued_at() && now < candidate.proof_expires_at());
     assert!(Instant::now() < candidate.context().pending().deadline);
+    demo_stage("verified_candidate");
     let mut recorded = vec![candidate.operation().clone()];
     assert_eq!(
         recorded[0]["constraints"]["expected_head_sha"],
@@ -576,6 +589,7 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     assert!(invoke(&store, &mut store.open(NOW + 2), &proof, NOW + 2).is_err());
     assert_eq!(calls(), 1);
     assert_eq!(recorded.len(), 1);
+    demo_stage("replay_denied");
     let mut bad = proof.clone();
     let index = bad.iter().rposition(|b| *b == b'.').unwrap() + 1;
     bad[index] = if bad[index] == b'A' { b'B' } else { b'A' };
@@ -693,4 +707,5 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
         recorded.pop().unwrap()["action"],
         "github.pull_request.merge"
     );
+    demo_stage("negatives_passed");
 }

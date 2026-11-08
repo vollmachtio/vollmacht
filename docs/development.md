@@ -12,6 +12,12 @@ target/debug/vollmacht version
 
 The current binary only prints help and version information. Unsupported arguments fail with status 2 without echoing input. It opens no listener, reads no credentials, and performs no GitHub operations.
 
+## Reviewable demo
+
+After installing the prerequisites above, run `python3 scripts/demo.py` from the repository root. It runs the existing fresh integration and prints a concise walkthrough only if the test succeeds and every expected stage is present in order. The command does not install or change runtimes, uses no native key or GitHub credential, and sends no GitHub request. Cargo may fetch and build locked dependencies. Disposable test storage is removed on normal completion; interruption can leave temporary test files.
+
+The walkthrough deliberately uses synthetic approval. It ends at a verified merge candidate, not a reservation or dispatched action. Review the sequence and terminology now; native approval, live execution and polished UI follow as separate increments. On failure, run the fresh-flow test below for diagnostics. The command selects the pinned Node already on PATH and times out after five minutes, terminating its owned process group. Both command regression tests and the actual walkthrough run in the standard check script.
+
 ## Integrated simulated merge
 
 After the prerequisites above, run this targeted integration test from the repository root:

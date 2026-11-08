@@ -2,6 +2,16 @@
   "version": 1,
   "sources": [
     {
+      "path": "scripts/demo.py",
+      "role": "developer_tool",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "scripts/test_demo.py",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "spikes/helper-launcher/tests/support/attempt_fixture.rs",
       "role": "test_support",
       "measurement": "unmeasured"
