@@ -18,6 +18,8 @@ After installing the prerequisites above, run `python3 scripts/demo.py` from the
 
 The walkthrough deliberately uses synthetic approval. It ends at a verified merge candidate, not a reservation or dispatched action. Review the sequence and terminology now; native approval, live execution and polished UI follow as separate increments. On failure, run the fresh-flow test below for diagnostics. The command selects the pinned Node already on PATH and times out after five minutes, terminating its owned process group. Both command regression tests and the actual walkthrough run in the standard check script.
 
+Proposal details come directly from the immutable Rust approval payload used for the synthetic assertion, not separate Python constants. The trace checks that its fingerprint matches the assertion's signed challenge. Before printing, the diagnostic runner requires one bounded, unambiguous record, validates the restricted ASCII/integer shape, and recomputes that profile's fingerprint. This display check is not an authorization verifier or a general JCS implementation. Public references and test-clock timestamps are labeled synthetic; raw evidence and key bytes are never displayed. Output appears after the test succeeds, so it must not be treated as an interactive approval ceremony.
+
 ## Integrated simulated merge
 
 After the prerequisites above, run this targeted integration test from the repository root:

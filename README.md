@@ -22,6 +22,8 @@ This runs the actual synthetic integration and presents its checked stages: prop
 
 No Touch ID, Keychain or GitHub credentials are used. No GitHub action is sent. The demo uses temporary test storage and software keys; it is a reviewable walkthrough, not the live MVP or a production fallback. Final reservation, real approval and deployment qualification remain unfinished.
 
+The walkthrough displays the actual synthetic proposal, including the full approved head SHA, base, method, public identity references, simulated expiry and mandate fingerprint. This is a recorded proposal shown after successful checks, not an interactive approval prompt.
+
 ## Project documents
 
 - [Execution plan](docs/implementation-plan.md)

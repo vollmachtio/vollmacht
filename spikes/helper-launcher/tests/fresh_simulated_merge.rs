@@ -544,8 +544,29 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     let session = id();
     let approval = ApprovalPayload::parse(&serde_json::to_vec(&json!({"version":1,"crypto_profile":PROFILE,"mandate_id":id(),"nonce":B64.encode(random::<32>()),"issuer_id":issuer_id,"audience":audience,"principal_id":principal,"credential_id":credential["id"],"agent_jkt":agent_jkt,"policy_revision":1,"issued_at":NOW,"expires_at":NOW+120,"operation":{"action":"github.pull_request.merge","resource":{"host":"github.com","repository_id":"12345","pull_request_number":42},"constraints":{"expected_head_sha":"a".repeat(40),"base_ref":"main","merge_method":"squash"}},"display":{"version":1,"repository":"vollmacht-disposable/example"}})).unwrap()).unwrap();
     let challenge = B64.encode(mandate_digest(&approval).unwrap());
+    let proposal_record = json!({"payload": approval.fields(), "fingerprint": challenge});
+    assert_eq!(
+        proposal_record["fingerprint"].as_str(),
+        Some(challenge.as_str())
+    );
+    if std::env::var_os("VOLLMACHT_DEMO_TRACE").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        // Actual immutable synthetic proposal only, never assertion or key bytes.
+        println!(
+            "VOLLMACHT_PROPOSAL:{}",
+            serde_json::to_string(&proposal_record).unwrap()
+        );
+    }
     demo_stage("proposal");
     let assertion = browser.approve(&challenge);
+    let signed_client_data: Value = serde_json::from_slice(
+        &B64.decode(assertion["client_data_json"].as_str().unwrap())
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        signed_client_data["challenge"],
+        proposal_record["fingerprint"]
+    );
     assert_eq!(assertion["id"], credential["id"]);
     assert_eq!(assertion["raw_id"], credential["id"]);
     assert_eq!(assertion["type"], "public-key");
