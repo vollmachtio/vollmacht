@@ -21,7 +21,7 @@ serde_jcs = "=0.2.0"
 vollmacht-core = { version = "=0.1.0-dev", path = "../../crates/core" }
 base64 = { version = "=0.23.1", default-features = false, features = ["std"] }
 getrandom = "=0.4.3"
-openssl = "=0.10.81"
+openssl = "=0.10.82"
 
 [lints.rust]
 unsafe_code = "deny"
