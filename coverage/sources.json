@@ -2,6 +2,11 @@
   "version": 1,
   "sources": [
     {
+      "path": "spikes/helper-launcher/tests/support/attempt_fixture.rs",
+      "role": "test_support",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/state/src/lib.rs",
       "role": "trusted_core",
       "measurement": "unmeasured"

@@ -1,6 +1,10 @@
 //! Fresh synthetic issuance and execution, entirely test-only. Ephemeral software
-//! keys and asserted UV flags are not a human ceremony, native provider, durable
-//! store or production fallback. No network or GitHub client exists in this test.
+//! keys and asserted UV flags are not a human ceremony or native provider.
+//! A real attempt ledger uses explicitly seeded test state, not production
+//! provisioning. No reservation, network or GitHub client exists in this test.
+#[path = "support/attempt_fixture.rs"]
+mod attempt_fixture;
+use attempt_fixture::{AttemptFixture, request};
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD as B64};
 use openssl::{
     bn::{BigNum, BigNumContext},
@@ -22,9 +26,93 @@ use std::{
 };
 use vollmacht_core::*;
 use vollmacht_helper_probe::{Coordinator, HelperResult, Launch, Request};
+use vollmacht_state::Ledger;
 
 const NOW: u64 = 1_800_000_000; // Explicit deterministic test clock, not host time.
 const PROFILE: &str = "vollmacht-local-es256-v1";
+
+fn attempt<'a>(
+    ledger: &mut Ledger,
+    runtime: &VerificationRuntime,
+    context: &'a ExecutionContext,
+    issuer: &[u8],
+    proof: &[u8],
+    helper: &impl EvidenceRechecker,
+    now: u64,
+) -> Result<VerifiedExecutionCandidate<'a>, &'static str> {
+    let claim = ledger
+        .claim_submission(request(context), attempt_fixture::sample(now))
+        .map_err(|_| "claim denied")?;
+    let s = claim.snapshot();
+    let t = context.trust();
+    let matching = s.mandate_digest == mandate_digest(context.approved().approval()).unwrap()
+        && s.operation_digest == operation_digest(context.approved().approval()).unwrap()
+        && s.envelope_digest == envelope_digest(context.approved()).unwrap()
+        && B64.encode(s.agent_jkt) == t.agent_jkt
+        && s.audience == t.audience
+        && s.policy_revision == t.policy_revision
+        && s.registry_revisions == t.registry_revisions;
+    let result = if matching {
+        verify_claimed_attempt(
+            runtime,
+            context,
+            issuer,
+            proof,
+            helper,
+            ExecutionTime {
+                wall_seconds: now,
+                monotonic: Instant::now(),
+                session_id: t.session_id.clone(),
+            },
+        )
+        .map_err(|_| "verification denied")
+    } else {
+        Err("snapshot denied")
+    };
+    if result.is_err() {
+        ledger
+            .finish_rejected(&claim, &id(), attempt_fixture::sample(now))
+            .map_err(|_| "rejection failed; stop")?;
+    }
+    result
+}
+
+struct ObservedHelper<'a> {
+    helper: &'a Helper,
+    fixture: &'a AttemptFixture,
+    calls: &'a std::sync::atomic::AtomicUsize,
+}
+struct RejectionFailure<'a> {
+    helper: &'a Helper,
+    fixture: &'a AttemptFixture,
+    lock: std::cell::RefCell<Option<rusqlite::Connection>>,
+}
+impl EvidenceRechecker for RejectionFailure<'_> {
+    fn recheck(
+        &self,
+        request: &EvidenceRecheckRequest<'_>,
+    ) -> Result<AssertionRecheckResult, EvidenceRecheckError> {
+        assert_eq!(self.fixture.state(), "claimed");
+        self.helper.recheck(request)?;
+        let db = self.fixture.sql();
+        db.execute_batch("BEGIN IMMEDIATE").unwrap();
+        *self.lock.borrow_mut() = Some(db);
+        // Test-only failure after actual cryptographic verification, with an
+        // independent writer preventing the terminal rejection transaction.
+        Err(EvidenceRecheckError)
+    }
+}
+impl EvidenceRechecker for ObservedHelper<'_> {
+    fn recheck(
+        &self,
+        request: &EvidenceRecheckRequest<'_>,
+    ) -> Result<AssertionRecheckResult, EvidenceRecheckError> {
+        // Independent connection observes the committed claim before helper work.
+        assert_eq!(self.fixture.state(), "claimed");
+        self.calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        self.helper.recheck(request)
+    }
+}
 
 fn random<const N: usize>() -> [u8; N] {
     let mut b = [0; N];
@@ -316,7 +404,7 @@ impl Issuance<'_> {
 }
 
 #[test]
-fn fresh_synthetic_approval_issuance_and_execution_record_one_merge() {
+fn fresh_synthetic_approval_issuance_and_execution_record_one_candidate() {
     let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../simplewebauthn")
         .canonicalize()
@@ -459,23 +547,22 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_merge() {
         &agent_public,
     )
     .unwrap();
-    let sample = |wall_seconds| ExecutionTime {
-        wall_seconds,
-        monotonic: Instant::now(),
-        session_id: session.clone(),
+    let helper_calls = std::sync::atomic::AtomicUsize::new(0);
+    let calls = || helper_calls.load(std::sync::atomic::Ordering::SeqCst);
+    let invoke = |store: &AttemptFixture, ledger: &mut Ledger, bytes: &[u8], now| {
+        let observed = ObservedHelper {
+            helper: &helper,
+            fixture: store,
+            calls: &helper_calls,
+        };
+        attempt(ledger, &runtime, &context, &issuer, bytes, &observed, now)
     };
-    // Independent fresh simulated stores, each claiming before core verification.
-    let attempt = |used: &mut bool, bytes: &[u8], now| {
-        if *used {
-            return Err("replay");
-        }
-        *used = true;
-        verify_claimed_attempt(&runtime, &context, &issuer, bytes, &helper, sample(now))
-            .map_err(|_| "denied")
-    };
-    let mut used = false;
-    let candidate = attempt(&mut used, &proof, NOW + 2).unwrap();
-    // Test-only final transaction: same captured state, fresh clock/proof bounds.
+    let store = AttemptFixture::new(&context, &issuer_public);
+    let mut ledger = store.open(NOW + 2);
+    let candidate = invoke(&store, &mut ledger, &proof, NOW + 2).unwrap();
+    assert_eq!(calls(), 1);
+    assert_eq!(store.state(), "claimed");
+    // Recording-only candidate event, NOT a reservation or dispatch permit.
     let now = NOW + 2;
     assert!(now >= candidate.proof_issued_at() && now < candidate.proof_expires_at());
     assert!(Instant::now() < candidate.context().pending().deadline);
@@ -484,16 +571,123 @@ fn fresh_synthetic_approval_issuance_and_execution_record_one_merge() {
         recorded[0]["constraints"]["expected_head_sha"],
         "a".repeat(40)
     );
-    assert!(attempt(&mut used, &proof, NOW + 2).is_err());
+    assert!(invoke(&store, &mut ledger, &proof, NOW + 2).is_err());
+    drop(ledger);
+    assert!(invoke(&store, &mut store.open(NOW + 2), &proof, NOW + 2).is_err());
+    assert_eq!(calls(), 1);
     assert_eq!(recorded.len(), 1);
     let mut bad = proof.clone();
     let index = bad.iter().rposition(|b| *b == b'.').unwrap() + 1;
     bad[index] = if bad[index] == b'A' { b'B' } else { b'A' };
     for (bytes, now) in [(&bad, NOW + 2), (&proof, NOW + 20)] {
-        let mut consumed = false;
-        assert!(attempt(&mut consumed, bytes, now).is_err());
-        assert!(attempt(&mut consumed, &proof, NOW + 2).is_err());
+        let store = AttemptFixture::new(&context, &issuer_public);
+        let mut ledger = store.open(now);
+        assert!(invoke(&store, &mut ledger, bytes, now).is_err());
+        assert_eq!(store.state(), "rejected");
+        let transitions: (i64, i64) = store
+            .sql()
+            .query_row(
+                "SELECT (SELECT count(*) FROM operations),(SELECT count(*) FROM audit)",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(transitions, (2, 2));
+        drop(ledger);
+        assert!(invoke(&store, &mut store.open(now), &proof, now).is_err());
     }
+    let unrelated = AttemptFixture::new(&context, &issuer_public);
+    let mut wrong = request(&context);
+    wrong.challenge = B64.encode(random::<32>());
+    assert!(
+        unrelated
+            .open(NOW + 2)
+            .claim_submission(wrong, attempt_fixture::sample(NOW + 2))
+            .is_err()
+    );
+    assert_eq!(unrelated.state(), "pending");
+    for column in [
+        "mandate_digest",
+        "operation_digest",
+        "envelope_digest",
+        "agent_jkt",
+    ] {
+        let mismatch = AttemptFixture::new(&context, &issuer_public);
+        // Fixed test-owned column names, never an artifact-controlled SQL input.
+        mismatch
+            .sql()
+            .execute(&format!("UPDATE mandates SET {column}=?1"), [vec![0u8; 32]])
+            .unwrap();
+        let before = calls();
+        assert!(invoke(&mismatch, &mut mismatch.open(NOW + 2), &proof, NOW + 2).is_err());
+        assert_eq!(calls(), before);
+        assert_eq!(mismatch.state(), "rejected");
+    }
+    for update in [
+        "UPDATE mandates SET audience='00000000000000000000000000000000'",
+        "UPDATE mandates SET policy_revision=2",
+        "UPDATE mandates SET credential_revision=2",
+    ] {
+        let mismatch = AttemptFixture::new(&context, &issuer_public);
+        mismatch.sql().execute_batch(update).unwrap();
+        let before = calls();
+        assert!(invoke(&mismatch, &mut mismatch.open(NOW + 2), &proof, NOW + 2).is_err());
+        assert_eq!(calls(), before);
+        assert_eq!(mismatch.state(), "pending"); // Denied by the claim transaction.
+    }
+    let race = AttemptFixture::new(&context, &issuer_public);
+    let ledgers = [race.open(NOW + 2), race.open(NOW + 2)];
+    let barrier = std::sync::Barrier::new(2);
+    let before = calls();
+    let winners = thread::scope(|scope| {
+        let handles: Vec<_> = ledgers
+            .into_iter()
+            .map(|mut ledger| {
+                let invoke = &invoke;
+                let race = &race;
+                let barrier = &barrier;
+                let proof = &proof;
+                scope.spawn(move || {
+                    barrier.wait();
+                    invoke(race, &mut ledger, proof, NOW + 2).is_ok()
+                })
+            })
+            .collect();
+        handles
+            .into_iter()
+            .map(|h| usize::from(h.join().unwrap()))
+            .sum::<usize>()
+    });
+    assert_eq!(winners, 1);
+    assert_eq!(calls(), before + 1);
+    assert_eq!(race.state(), "claimed");
+    let blocked = AttemptFixture::new(&context, &issuer_public);
+    let mut ledger = blocked.open(NOW + 2);
+    let failing = RejectionFailure {
+        helper: &helper,
+        fixture: &blocked,
+        lock: std::cell::RefCell::new(None),
+    };
+    assert!(matches!(
+        attempt(
+            &mut ledger,
+            &runtime,
+            &context,
+            &issuer,
+            &proof,
+            &failing,
+            NOW + 2
+        ),
+        Err("rejection failed; stop")
+    ));
+    assert_eq!(blocked.state(), "claimed");
+    let lock = failing.lock.borrow_mut().take().unwrap();
+    lock.execute_batch("ROLLBACK").unwrap();
+    drop(lock);
+    drop(ledger);
+    let before = calls();
+    assert!(invoke(&blocked, &mut blocked.open(NOW + 2), &proof, NOW + 2).is_err());
+    assert_eq!(calls(), before);
     // Nothing besides the successful candidate is ever sent to this recorder.
     assert_eq!(
         recorded.pop().unwrap()["action"],

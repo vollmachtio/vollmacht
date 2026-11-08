@@ -34,9 +34,11 @@ The fresh-flow test generates ephemeral issuer, agent and synthetic authenticato
 VOLLMACHT_TEST_NODE="$(command -v node)" cargo test -p vollmacht-helper-launcher --test fresh_simulated_merge --locked -- --nocapture
 ```
 
-It creates a new proposal and mandate challenge, obtains a synthetic assertion, verifies the evidence with the actual helper, signs new mandate/proof bytes through the prepared-input guards, and exercises core verification before a recording-only merge. Software signing is confined to this test executable. The original fixed-vector integration remains as an independent regression oracle.
+It creates a new proposal and mandate challenge, obtains a synthetic assertion, verifies the evidence with the actual helper, signs new mandate/proof bytes through the prepared-input guards, and exercises core verification before recording a verified candidate. Software signing is confined to this test executable. The original fixed-vector integration remains as an independent regression oracle.
 
-Synthetic user-verification flags do not demonstrate human approval or Touch ID. This test does not enroll a real credential, qualify a native issuer, persist authority or contact GitHub. It is a fresh simulated flow, not the user-facing MVP; real approval/issuance and durable enforcement remain required.
+Execution attempts use disposable SQLite storage: a matching claim commits before verification, captured bindings are compared with the trusted context, and failed verification appends a rejection. Successful verification leaves the attempt claimed and records only a candidate, not a reservation or completed merge. Same-session reopen checks cannot recover a receipt or reuse the challenge.
+
+Synthetic user-verification flags do not demonstrate human approval or Touch ID. This test does not enroll a real credential, qualify a native issuer, provision production authority or contact GitHub. It is a fresh simulated flow, not the user-facing MVP; real approval/issuance, final reservation and deployment-qualified persistence remain required.
 
 ## Durable attempt ledger
 
@@ -44,7 +46,7 @@ Synthetic user-verification flags do not demonstrate human approval or Touch ID.
 
 A successful claim returns a non-cloneable receipt and captured bindings, not a verified mandate or dispatch permit. Concurrent matching claims have one winner. State, operation records, audit records and the wall-clock high-water mark commit together. An ambiguous write poisons that writer; read-only lookup cannot reconstruct a receipt. Rejected attempts retain their history while allowing a fresh challenge for the same still-approved mandate.
 
-This crate is not yet wired into the simulated flow. It does not implement reservation, dispatch, enrollment/disable, bootstrap authentication, executor leasing or startup invalidation. Its caller must supply authenticated bindings and trusted time/deadlines. File checks and SQLite settings do not qualify filesystem isolation, rollback resistance or power-loss durability. Reopening test state demonstrates persistence, not a qualified process-restart protocol. These remain required before live execution.
+The fresh simulated flow integrates this crate through explicit test provisioning. It does not implement reservation, dispatch, enrollment/disable, bootstrap authentication, executor leasing or startup invalidation. Its caller must supply authenticated bindings and trusted time/deadlines. File checks and SQLite settings do not qualify filesystem isolation, rollback resistance or power-loss durability. Reopening test state demonstrates persistence, not a qualified process-restart protocol. These remain required before live execution.
 
 ## Workspace conventions
 
