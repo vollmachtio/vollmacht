@@ -1,6 +1,10 @@
 """Mocked demo-runner controls: no compiler, network or native operation runs."""
 import contextlib
 import io
+import base64
+import copy
+import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -18,8 +22,26 @@ EVENTS = (
 PIN = "v" + (demo.ROOT / "spikes/simplewebauthn/.node-version").read_text().strip()
 
 
-def transcript(events=EVENTS):
-    return "compiler noise\n" + "".join(f"VOLLMACHT_DEMO:{event}\n" for event in events)
+def proposal():
+    fixture = json.loads((demo.ROOT / "spikes/canonicalization/fixtures/candidate-profile-vector.json").read_text())
+    return {"payload": fixture["approval"], "fingerprint": "cPADub8ZYk9k4lytHWn0RCCKrzTZhTnW0oAeVlhGmjg"}
+
+
+def fingerprint(payload):
+    # This fixture subset has only ASCII strings and safe positive integers,
+    # for which standard sorted compact JSON supplies independent JCS bytes.
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    return base64.urlsafe_b64encode(hashlib.sha256(b"vollmacht:mandate:v1\0" + canonical).digest()).rstrip(b"=").decode()
+
+
+def transcript(events=EVENTS, record=None):
+    record = proposal() if record is None else record
+    lines = ["compiler noise"]
+    for event in events:
+        if event == "proposal":
+            lines.append("VOLLMACHT_PROPOSAL:" + json.dumps(record, separators=(",", ":")))
+        lines.append(f"VOLLMACHT_DEMO:{event}")
+    return "\n".join(lines) + "\n"
 
 
 def completed(output="", code=0):
@@ -50,6 +72,103 @@ class DemoTests(unittest.TestCase):
                 status, output, calls = self.invoke([], missing=name)
                 self.assert_denied(status, output)
                 self.assertEqual(calls, [])
+
+    def test_proposal_fingerprint_matches_independent_fixed_oracle(self):
+        record = proposal()
+        self.assertEqual(fingerprint(record["payload"]), record["fingerprint"])
+
+    def test_missing_duplicate_or_ambiguous_proposal_record_fails(self):
+        valid = transcript()
+        line = next(line for line in valid.splitlines() if line.startswith("VOLLMACHT_PROPOSAL:"))
+        ambiguous = line.replace('"fingerprint":', '"fingerprint":"wrong","fingerprint":', 1)
+        escaped_duplicate = line.replace('"fingerprint":', '"\\u0066ingerprint":"wrong","fingerprint":', 1)
+        payload_duplicate = line.replace('"version":1', '"version":1,"version":1', 1)
+        for raw in (
+            valid.replace(line + "\n", ""), valid + line + "\n",
+            valid.replace(line, ambiguous), valid.replace(line, escaped_duplicate),
+            valid.replace(line, payload_duplicate), valid.replace(line, "VOLLMACHT_PROPOSAL:{"),
+            valid.replace(line + "\n", "").replace("VOLLMACHT_DEMO:synthetic_approval\n", "VOLLMACHT_DEMO:synthetic_approval\n" + line + "\n"),
+        ):
+            with self.subTest(raw=raw[-80:]):
+                status, output, _ = self.invoke([completed(PIN), completed(raw)])
+                self.assert_denied(status, output)
+
+    def test_malformed_fields_and_control_text_do_not_render(self):
+        original = proposal()
+        bad = []
+        for name in original["payload"]:
+            record = copy.deepcopy(original)
+            del record["payload"][name]
+            bad.append(record)
+        for path in (("operation",), ("operation", "resource"), ("operation", "constraints"), ("display",)):
+            original_object = original["payload"]
+            for part in path:
+                original_object = original_object[part]
+            for name in original_object:
+                record = copy.deepcopy(original)
+                target = record["payload"]
+                for part in path:
+                    target = target[part]
+                del target[name]
+                bad.append(record)
+            record = copy.deepcopy(original)
+            target = record["payload"]
+            for part in path:
+                target = target[part]
+            target["extra"] = 1
+            bad.append(record)
+        for replacement in (None, [], "payload", True):
+            bad.append({"payload": replacement, "fingerprint": original["fingerprint"]})
+        for field, value in (("version", True), ("issued_at", 1.0), ("expires_at", -1), ("crypto_profile", "unknown")):
+            record = copy.deepcopy(original)
+            record["payload"][field] = value
+            record["fingerprint"] = fingerprint(record["payload"])
+            bad.append(record)
+        for text in ("owner/\u001b[31mred", "owner/\nspoof", "owner/\rspoof", "owner/\tspoof", "owner/\u007f", "owner/é", "x" * 9000):
+            record = copy.deepcopy(original)
+            record["payload"]["display"]["repository"] = text
+            record["fingerprint"] = fingerprint(record["payload"])
+            bad.append(record)
+        record = copy.deepcopy(original)
+        record["payload"]["extra"] = "field"
+        bad.append(record)
+        bad.append({**original, "extra": 1})
+        for value in (None, 7, "A" * 43, original["fingerprint"] + "=", "\u001b[31m"):
+            bad.append({**original, "fingerprint": value})
+        for record in bad:
+            with self.subTest(record=record):
+                status, output, _ = self.invoke([completed(PIN), completed(transcript(record=record))])
+                self.assert_denied(status, output)
+                self.assertNotIn("\u001b", output)
+
+    def test_mutating_proposal_without_updating_fingerprint_fails(self):
+        for path, value in (
+            (("operation", "constraints", "expected_head_sha"), "b" * 40),
+            (("operation", "resource", "repository_id"), "98765"),
+            (("expires_at",), 1800000119),
+            (("agent_jkt",), "A" * 43),
+        ):
+            record = proposal()
+            target = record["payload"]
+            for name in path[:-1]:
+                target = target[name]
+            target[path[-1]] = value
+            status, output, _ = self.invoke([completed(PIN), completed(transcript(record=record))])
+            self.assert_denied(status, output)
+
+    def test_display_uses_actual_payload_not_canned_fixture_values(self):
+        record = proposal()
+        payload = record["payload"]
+        payload["display"]["repository"] = "review/changed"
+        payload["operation"]["resource"].update(repository_id="987654", pull_request_number=73)
+        payload["operation"]["constraints"].update(base_ref="release/review", expected_head_sha="b" * 40, merge_method="rebase")
+        payload["expires_at"] = payload["issued_at"] + 60
+        record["fingerprint"] = fingerprint(payload)
+        status, output, _ = self.invoke([completed(PIN), completed(transcript(record=record))])
+        self.assertEqual(status, 0)
+        for value in ("review/changed", "987654", "73", "release/review", "b" * 40, "rebase", record["fingerprint"]):
+            self.assertIn(value, output)
+        self.assertNotIn("squash PR 42", output)
 
     def test_wrong_or_failed_version_never_starts_the_flow(self):
         for result in (completed("v0.0.0\n"), completed(PIN, code=1)):
