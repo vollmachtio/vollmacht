@@ -2,6 +2,21 @@
   "version": 1,
   "sources": [
     {
+      "path": "crates/state/src/lib.rs",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/state/src/schema.sql",
+      "role": "trusted_core",
+      "measurement": "unmeasured"
+    },
+    {
+      "path": "crates/state/tests/ledger.rs",
+      "role": "test",
+      "measurement": "unmeasured"
+    },
+    {
       "path": "crates/cli/src/main.rs",
       "role": "cli_scaffold",
       "measurement": "unmeasured"

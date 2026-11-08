@@ -19,6 +19,16 @@ TRACKED = {"src/a.rs", "tests/support/a.py"}
 
 
 class InventoryTests(unittest.TestCase):
+    def test_sql_schema_requires_explicit_classification(self):
+        tracked = subject.tracked_sources(b"src/a.rs\0tests/support/a.py\0src/schema.sql\0")
+        self.assertIn("src/schema.sql", tracked)
+        with self.assertRaisesRegex(InvalidReport, "requires review"):
+            subject.validate(document(), tracked)
+        value = document()
+        value["sources"].append({"path": "src/schema.sql", "role": "trusted_core",
+                                 "measurement": "unmeasured"})
+        self.assertEqual(subject.validate(value, tracked)["sources"], 3)
+
     def test_complete_inventory_accounts_for_test_support(self):
         result = subject.validate(document(), TRACKED)
         self.assertEqual(result["sources"], 2)

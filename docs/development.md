@@ -38,6 +38,14 @@ It creates a new proposal and mandate challenge, obtains a synthetic assertion, 
 
 Synthetic user-verification flags do not demonstrate human approval or Touch ID. This test does not enroll a real credential, qualify a native issuer, persist authority or contact GitHub. It is a fresh simulated flow, not the user-facing MVP; real approval/issuance and durable enforcement remain required.
 
+## Durable attempt ledger
+
+`vollmacht-state` supplies the first transactional coordinator-state slice: open an existing, exactly matched database, claim one matching pending challenge, append a rejection, and inspect an operation without recovering authority. Run its portable tests with `cargo test -p vollmacht-state`. Tests provision disposable databases directly; the library exposes no provisioning or import shortcut.
+
+A successful claim returns a non-cloneable receipt and captured bindings, not a verified mandate or dispatch permit. Concurrent matching claims have one winner. State, operation records, audit records and the wall-clock high-water mark commit together. An ambiguous write poisons that writer; read-only lookup cannot reconstruct a receipt. Rejected attempts retain their history while allowing a fresh challenge for the same still-approved mandate.
+
+This crate is not yet wired into the simulated flow. It does not implement reservation, dispatch, enrollment/disable, bootstrap authentication, executor leasing or startup invalidation. Its caller must supply authenticated bindings and trusted time/deadlines. File checks and SQLite settings do not qualify filesystem isolation, rollback resistance or power-loss durability. Reopening test state demonstrates persistence, not a qualified process-restart protocol. These remain required before live execution.
+
 ## Workspace conventions
 
 The separate [Apple key experiment](../spikes/macos-key/README.md) compiles on macOS and Linux. Its tests use software keys only. Hardware invocation is explicit and is never part of CI; default invocation prints help. It requests no permanent keys and does not alter the production CLI.
